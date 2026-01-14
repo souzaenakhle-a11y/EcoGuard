@@ -47,6 +47,15 @@ const ClientesPage = ({ user }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Verificar se já existe uma matriz
+      if (formData.tipo_estabelecimento === 'matriz') {
+        const existingMatriz = empresas.find(emp => emp.tipo_estabelecimento === 'matriz');
+        if (existingMatriz) {
+          toast.error('Já existe uma empresa cadastrada como Matriz. Cadastre como Filial ou exclua a Matriz existente.');
+          return;
+        }
+      }
+      
       const empresaData = {
         nome: formData.nome,
         cnpj: formData.cnpj,

@@ -790,8 +790,263 @@ async def get_dashboard(empresa_id: str, request: Request):
     }
 
 # Licenças Routes
+@api_router.post("/licencas", response_model=LicencaDocumento)
+async def create_licenca(licenca_data: LicencaDocumentoCreate, request: Request):
+    user = await get_current_user(request)
+    
+    licenca_id = f"lic_{uuid.uuid4().hex[:12]}"
+    licenca_dict = {
+        "licenca_id": licenca_id,
+        **licenca_data.model_dump(),
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc)
+    }
+    
+    licenca_dict["data_emissao"] = datetime.fromisoformat(licenca_dict["data_emissao"])
+    licenca_dict["data_validade"] = datetime.fromisoformat(licenca_dict["data_validade"])
+    
+    data_validade = licenca_dict["data_validade"]
+    dias_restantes = (data_validade - datetime.now(timezone.utc)).days
+    
+    if dias_restantes < 0:
+        licenca_dict["status"] = "vencida"
+    elif dias_restantes <= licenca_dict.get("dias_alerta_vencimento", 30):
+        licenca_dict["status"] = "a_vencer"
+    else:
+        licenca_dict["status"] = "valida"
+    
+    await db.licencas_documentos.insert_one(licenca_dict)
+    licenca_doc = await db.licencas_documentos.find_one({"licenca_id": licenca_id}, {"_id": 0})
+    return LicencaDocumento(**licenca_doc)
+
+@api_router.get("/licencas", response_model=List[LicencaDocumento])
+async def get_licencas(
+    request: Request,
+    empresa_id: Optional[str] = None,
+    status: Optional[str] = None,
+    tipo: Optional[str] = None
+):
+    user = await get_current_user(request)
+    query = {}
+    if empresa_id:
+        query["empresa_id"] = empresa_id
+    if status:
+        query["status"] = status
+    if tipo:
+        query["tipo"] = tipo
+    
+    licencas = await db.licencas_documentos.find(query, {"_id": 0}).to_list(1000)
+    
+    for licenca in licencas:
+        if licenca.get("data_validade"):
+            data_validade = licenca["data_validade"]
+            if isinstance(data_validade, str):
+                data_validade = datetime.fromisoformat(data_validade)
+            if data_validade.tzinfo is None:
+                data_validade = data_validade.replace(tzinfo=timezone.utc)
+            
+            dias_restantes = (data_validade - datetime.now(timezone.utc)).days
+            
+            if dias_restantes < 0:
+                licenca["status"] = "vencida"
+            elif dias_restantes <= licenca.get("dias_alerta_vencimento", 30):
+                licenca["status"] = "a_vencer"
+            else:
+                licenca["status"] = "valida"
+    
+    return licencas
+
+@api_router.get("/licencas/{licenca_id}", response_model=LicencaDocumento)
+async def get_licenca(licenca_id: str, request: Request):
+    user = await get_current_user(request)
+    licenca = await db.licencas_documentos.find_one({"licenca_id": licenca_id}, {"_id": 0})
+    if not licenca:
+        raise HTTPException(status_code=404, detail="Licença not found")
+    return LicencaDocumento(**licenca)
+
+@api_router.put("/licencas/{licenca_id}", response_model=LicencaDocumento)
+async def update_licenca(licenca_id: str, licenca_data: LicencaDocumentoUpdate, request: Request):
+    user = await get_current_user(request)
+    
+    update_dict = {k: v for k, v in licenca_data.model_dump().items() if v is not None}
+    update_dict["updated_at"] = datetime.now(timezone.utc)
+    
+    if "data_emissao" in update_dict:
+        update_dict["data_emissao"] = datetime.fromisoformat(update_dict["data_emissao"])
+    if "data_validade" in update_dict:
+        update_dict["data_validade"] = datetime.fromisoformat(update_dict["data_validade"])
+    
+    await db.licencas_documentos.update_one(
+        {"licenca_id": licenca_id},
+        {"$set": update_dict}
+    )
+    
+    licenca_doc = await db.licencas_documentos.find_one({"licenca_id": licenca_id}, {"_id": 0})
+    return LicencaDocumento(**licenca_doc)
+
+@api_router.delete("/licencas/{licenca_id}")
+async def delete_licenca(licenca_id: str, request: Request):
+    user = await get_current_user(request)
+    
+    await db.condicionantes.delete_many({"licenca_id": licenca_id})
+    
+    result = await db.licencas_documentos.delete_one({"licenca_id": licenca_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Licença not found")
+    return {"message": "Licença deleted"}
+
+# Condicionantes Routes
+@api_router.post("/licencas/{licenca_id}/condicionantes", response_model=Condicionante)
+async def create_condicionante(licenca_id: str, condicionante_data: CondicionanteCreate, request: Request):
+    user = await get_current_user(request)
+    
+    condicionante_id = f"cond_{uuid.uuid4().hex[:12]}"
+    condicionante_dict = {
+        "condicionante_id": condicionante_id,
+        "licenca_id": licenca_id,
+        **condicionante_data.model_dump(),
+        "status": "em_andamento",
+        "percentual_conclusao": 0,
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc)
+    }
+    
+    condicionante_dict["data_acompanhamento"] = datetime.fromisoformat(condicionante_dict["data_acompanhamento"])
+    condicionante_dict["alerta_acompanhamento"] = datetime.fromisoformat(condicionante_dict["alerta_acompanhamento"])
+    
+    await db.condicionantes.insert_one(condicionante_dict)
+    condicionante_doc = await db.condicionantes.find_one({"condicionante_id": condicionante_id}, {"_id": 0})
+    return Condicionante(**condicionante_doc)
+
+@api_router.get("/condicionantes", response_model=List[Condicionante])
+async def get_condicionantes(
+    request: Request,
+    licenca_id: Optional[str] = None,
+    status: Optional[str] = None
+):
+    user = await get_current_user(request)
+    query = {}
+    if licenca_id:
+        query["licenca_id"] = licenca_id
+    if status:
+        query["status"] = status
+    
+    condicionantes = await db.condicionantes.find(query, {"_id": 0}).to_list(1000)
+    return condicionantes
+
+@api_router.get("/condicionantes/{condicionante_id}", response_model=Condicionante)
+async def get_condicionante(condicionante_id: str, request: Request):
+    user = await get_current_user(request)
+    condicionante = await db.condicionantes.find_one({"condicionante_id": condicionante_id}, {"_id": 0})
+    if not condicionante:
+        raise HTTPException(status_code=404, detail="Condicionante not found")
+    return Condicionante(**condicionante)
+
+@api_router.put("/condicionantes/{condicionante_id}", response_model=Condicionante)
+async def update_condicionante(condicionante_id: str, condicionante_data: CondicionanteUpdate, request: Request):
+    user = await get_current_user(request)
+    
+    update_dict = {k: v for k, v in condicionante_data.model_dump().items() if v is not None}
+    update_dict["updated_at"] = datetime.now(timezone.utc)
+    
+    if "data_acompanhamento" in update_dict and update_dict["data_acompanhamento"]:
+        update_dict["data_acompanhamento"] = datetime.fromisoformat(update_dict["data_acompanhamento"])
+    if "alerta_acompanhamento" in update_dict and update_dict["alerta_acompanhamento"]:
+        update_dict["alerta_acompanhamento"] = datetime.fromisoformat(update_dict["alerta_acompanhamento"])
+    if "nova_data_acompanhamento" in update_dict and update_dict["nova_data_acompanhamento"]:
+        update_dict["nova_data_acompanhamento"] = datetime.fromisoformat(update_dict["nova_data_acompanhamento"])
+    
+    await db.condicionantes.update_one(
+        {"condicionante_id": condicionante_id},
+        {"$set": update_dict}
+    )
+    
+    condicionante_doc = await db.condicionantes.find_one({"condicionante_id": condicionante_id}, {"_id": 0})
+    return Condicionante(**condicionante_doc)
+
+@api_router.delete("/condicionantes/{condicionante_id}")
+async def delete_condicionante(condicionante_id: str, request: Request):
+    user = await get_current_user(request)
+    result = await db.condicionantes.delete_one({"condicionante_id": condicionante_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Condicionante not found")
+    return {"message": "Condicionante deleted"}
+
+# Indicadores/Dashboard de Licenças
+@api_router.get("/licencas/indicadores/dashboard")
+async def get_licencas_dashboard(request: Request, empresa_id: Optional[str] = None):
+    user = await get_current_user(request)
+    
+    query = {}
+    if empresa_id:
+        query["empresa_id"] = empresa_id
+    
+    licencas = await db.licencas_documentos.find(query, {"_id": 0}).to_list(1000)
+    
+    total = len(licencas)
+    validas = 0
+    a_vencer = 0
+    vencidas = 0
+    
+    proximos_vencimentos = []
+    
+    for licenca in licencas:
+        data_validade = licenca.get("data_validade")
+        if data_validade:
+            if isinstance(data_validade, str):
+                data_validade = datetime.fromisoformat(data_validade)
+            if data_validade.tzinfo is None:
+                data_validade = data_validade.replace(tzinfo=timezone.utc)
+            
+            dias_restantes = (data_validade - datetime.now(timezone.utc)).days
+            
+            if dias_restantes < 0:
+                vencidas += 1
+                licenca["status"] = "vencida"
+            elif dias_restantes <= 180:
+                a_vencer += 1
+                licenca["status"] = "a_vencer"
+                proximos_vencimentos.append({
+                    "licenca_id": licenca["licenca_id"],
+                    "nome_licenca": licenca["nome_licenca"],
+                    "empresa_id": licenca["empresa_id"],
+                    "data_validade": data_validade.isoformat(),
+                    "dias_restantes": dias_restantes
+                })
+            else:
+                validas += 1
+                licenca["status"] = "valida"
+    
+    proximos_vencimentos.sort(key=lambda x: x["dias_restantes"])
+    
+    por_tipo = {}
+    for licenca in licencas:
+        tipo = licenca.get("tipo", "Outros")
+        if tipo not in por_tipo:
+            por_tipo[tipo] = 0
+        por_tipo[tipo] += 1
+    
+    return {
+        "total": total,
+        "validas": validas,
+        "a_vencer": a_vencer,
+        "vencidas": vencidas,
+        "proximos_vencimentos": proximos_vencimentos[:10],
+        "por_tipo": por_tipo,
+        "licencas": licencas
+    }
+
+@api_router.get("/licencas/{empresa_id}", response_model=List[LicencaDocumento])
+async def get_licencas_old(empresa_id: str, request: Request):
+    user = await get_current_user(request)
+    licencas = await db.licencas_documentos.find(
+        {"empresa_id": empresa_id},
+        {"_id": 0}
+    ).to_list(100)
+    return licencas
+
 @api_router.post("/licencas/{empresa_id}", response_model=LicencaDocumento)
-async def create_licenca(
+async def create_licenca_old(
     empresa_id: str,
     licenca_data: LicencaDocumentoCreate,
     request: Request
@@ -814,15 +1069,6 @@ async def create_licenca(
     await db.licencas_documentos.insert_one(licenca_dict)
     licenca_doc = await db.licencas_documentos.find_one({"licenca_id": licenca_id}, {"_id": 0})
     return LicencaDocumento(**licenca_doc)
-
-@api_router.get("/licencas/{empresa_id}", response_model=List[LicencaDocumento])
-async def get_licencas(empresa_id: str, request: Request):
-    user = await get_current_user(request)
-    licencas = await db.licencas_documentos.find(
-        {"empresa_id": empresa_id},
-        {"_id": 0}
-    ).to_list(100)
-    return licencas
 
 @api_router.get("/alertas/{inspecao_id}", response_model=List[Alerta])
 async def get_alertas(inspecao_id: str, request: Request):

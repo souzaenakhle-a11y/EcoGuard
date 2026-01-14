@@ -4,7 +4,7 @@ import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Home, Eye, Clock, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { Home, Eye, Clock, CheckCircle, XCircle, AlertTriangle, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';

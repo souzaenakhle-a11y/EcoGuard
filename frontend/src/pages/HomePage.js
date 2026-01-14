@@ -230,15 +230,15 @@ const HomePage = ({ user }) => {
               </CardContent>
             </Card>
 
-            <Card className="hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate('/dashboard')}>
+            <Card className="hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate('/upload-planta')}>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-success/10 rounded-md flex items-center justify-center">
                     <CheckCircle className="w-5 h-5 text-success" />
                   </div>
                   <div>
-                    <p className="font-semibold">Nova Inspeção</p>
-                    <p className="text-sm text-muted-foreground">Iniciar auto-fiscalização</p>
+                    <p className="font-semibold">Nova Auto-Fiscalização</p>
+                    <p className="text-sm text-muted-foreground">Enviar planta para análise</p>
                   </div>
                 </div>
               </CardContent>

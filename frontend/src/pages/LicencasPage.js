@@ -258,6 +258,8 @@ const LicencasPage = ({ user }) => {
             })
           )}
         </div>
+        </>
+        )}
       </div>
     </div>
   );

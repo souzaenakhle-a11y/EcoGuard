@@ -69,10 +69,10 @@ const HomePage = ({ user }) => {
     },
     {
       title: 'Auto-Fiscalização',
-      description: 'Realize inspeções preventivas e evite multas ambientais',
+      description: 'Acompanhe tickets e inspeções preventivas',
       icon: CheckCircle,
       color: 'bg-success/10 text-success',
-      route: '/dashboard',
+      route: '/tickets',
       testId: 'module-inspecao'
     },
     {

@@ -84,8 +84,9 @@ const UploadPlantaPage = ({ user }) => {
         withCredentials: true
       });
 
-      toast.success('Planta enviada com sucesso!');
-      navigate(`/mapear-areas/${response.data.planta_id}`);
+      toast.success('Planta enviada! Ticket criado com sucesso.');
+      const ticketId = response.data.ticket_id;
+      navigate(`/tickets/${ticketId}`);
     } catch (error) {
       console.error('Error uploading planta:', error);
       toast.error('Erro ao enviar planta');

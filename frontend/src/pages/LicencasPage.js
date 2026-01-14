@@ -174,7 +174,7 @@ const LicencasPage = ({ user }) => {
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos</SelectItem>
+              <SelectItem value="all">Todos</SelectItem>
               <SelectItem value="valida">Válida</SelectItem>
               <SelectItem value="a_vencer">A Vencer</SelectItem>
               <SelectItem value="vencida">Vencida</SelectItem>
@@ -185,7 +185,7 @@ const LicencasPage = ({ user }) => {
               <SelectValue placeholder="Empresa" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas</SelectItem>
+              <SelectItem value="all">Todas</SelectItem>
               {empresas.map(emp => (
                 <SelectItem key={emp.empresa_id} value={emp.empresa_id}>{emp.nome}</SelectItem>
               ))}

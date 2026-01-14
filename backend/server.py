@@ -432,6 +432,14 @@ async def get_empresa(empresa_id: str, request: Request):
         raise HTTPException(status_code=404, detail="Empresa not found")
     return Empresa(**empresa)
 
+@api_router.delete("/empresas/{empresa_id}")
+async def delete_empresa(empresa_id: str, request: Request):
+    user = await get_current_user(request)
+    result = await db.empresas.delete_one({"empresa_id": empresa_id, "user_id": user.user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Empresa not found")
+    return {"message": "Empresa deleted"}
+
 # Planta Routes
 @api_router.post("/plantas")
 async def upload_planta(

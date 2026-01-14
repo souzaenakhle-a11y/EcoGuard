@@ -70,8 +70,14 @@ const DashboardPage = ({ user }) => {
     }
   };
 
-  const handleNovaInspecao = () => {
+  const handleNovaInspecao = async () => {
     if (selectedEmpresa) {
+      const plantasRes = await axios.get(`${API}/plantas/${selectedEmpresa.empresa_id}`, { withCredentials: true });
+      if (plantasRes.data.length === 0) {
+        toast.error('Esta empresa não possui plantas cadastradas');
+        navigate('/upload-planta');
+        return;
+      }
       navigate(`/iniciar-inspecao/${selectedEmpresa.empresa_id}`);
     } else {
       navigate('/upload-planta');

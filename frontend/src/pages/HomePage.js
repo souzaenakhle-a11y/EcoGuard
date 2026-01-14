@@ -216,7 +216,21 @@ const HomePage = ({ user }) => {
         <div className="mt-12">
           <h2 className="text-2xl font-bold mb-6">Ações Rápidas</h2>
           <div className="grid md:grid-cols-3 gap-4">
-            <Card className="hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate('/iniciar-inspecao')}>
+            <Card className="hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate('/clientes')}>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-md flex items-center justify-center">
+                    <Building className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">Nova Empresa</p>
+                    <p className="text-sm text-muted-foreground">Cadastrar empreendimento</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate('/dashboard')}>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-success/10 rounded-md flex items-center justify-center">
@@ -239,20 +253,6 @@ const HomePage = ({ user }) => {
                   <div>
                     <p className="font-semibold">Cadastrar Licença</p>
                     <p className="text-sm text-muted-foreground">Adicionar nova licença</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate('/clientes/novo')}>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-md flex items-center justify-center">
-                    <Users className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="font-semibold">Novo Cliente</p>
-                    <p className="text-sm text-muted-foreground">Cadastrar cliente</p>
                   </div>
                 </div>
               </CardContent>

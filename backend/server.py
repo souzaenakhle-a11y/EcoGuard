@@ -531,7 +531,7 @@ async def upload_planta(
         "created_at": datetime.now(timezone.utc)
     })
     
-    planta_doc = await db.plantas_estabelecimento.find_one({planta_id": planta_id}, {"_id": 0})
+    planta_doc = await db.plantas_estabelecimento.find_one({"planta_id": planta_id}, {"_id": 0})
     return {**planta_doc, "ticket_id": ticket_id}
 
 @api_router.get("/plantas/{empresa_id}", response_model=List[PlantaEstabelecimento])

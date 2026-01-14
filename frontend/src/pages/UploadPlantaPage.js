@@ -178,7 +178,7 @@ const UploadPlantaPage = ({ user }) => {
                   id="file-upload"
                   type="file"
                   className="hidden"
-                  accept=".pdf,.jpg,.jpeg,.png"
+                  accept=".jpg,.jpeg,.png"
                   onChange={handleFileSelect}
                 />
               </Label>

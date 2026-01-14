@@ -139,7 +139,22 @@ const LicencasPage = ({ user }) => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
+        {empresas.length === 0 ? (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center py-12">
+                <Building className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                <p className="text-lg font-semibold mb-2">Nenhuma empresa cadastrada</p>
+                <p className="text-muted-foreground mb-4">Cadastre uma empresa antes de gerenciar licenças</p>
+                <Button onClick={() => navigate('/clientes')}>
+                  Cadastrar Empresa
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="flex-1">
             <div className="relative">
               <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />

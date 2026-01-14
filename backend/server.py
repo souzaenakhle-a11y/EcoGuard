@@ -161,26 +161,80 @@ class Alerta(BaseModel):
     prazo_sugerido_dias: Optional[int] = None
     created_at: datetime
 
+class Condicionante(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    condicionante_id: str
+    licenca_id: str
+    nome: str
+    data_acompanhamento: datetime
+    alerta_acompanhamento: datetime
+    responsavel_nome: str
+    responsavel_email: str
+    descricao: str
+    status: str = "em_andamento"
+    percentual_conclusao: int = 0
+    observacoes: Optional[str] = None
+    nova_data_acompanhamento: Optional[datetime] = None
+    created_at: datetime
+    updated_at: datetime
+
+class CondicionanteCreate(BaseModel):
+    nome: str
+    data_acompanhamento: str
+    alerta_acompanhamento: str
+    responsavel_nome: str
+    responsavel_email: str
+    descricao: str
+
+class CondicionanteUpdate(BaseModel):
+    nome: Optional[str] = None
+    data_acompanhamento: Optional[str] = None
+    alerta_acompanhamento: Optional[str] = None
+    responsavel_nome: Optional[str] = None
+    responsavel_email: Optional[str] = None
+    descricao: Optional[str] = None
+    status: Optional[str] = None
+    percentual_conclusao: Optional[int] = None
+    observacoes: Optional[str] = None
+    nova_data_acompanhamento: Optional[str] = None
+
 class LicencaDocumento(BaseModel):
     model_config = ConfigDict(extra="ignore")
     licenca_id: str
     empresa_id: str
+    nome_licenca: str
+    numero_licenca: str
     tipo: str
-    numero: Optional[str] = None
-    orgao_emissor: Optional[str] = None
-    data_emissao: Optional[datetime] = None
-    data_validade: Optional[datetime] = None
+    orgao_emissor: str
+    data_emissao: datetime
+    data_validade: datetime
+    dias_alerta_vencimento: int = 30
     arquivo_id: Optional[str] = None
+    observacoes: Optional[str] = None
     status: str
     created_at: datetime
+    updated_at: datetime
 
 class LicencaDocumentoCreate(BaseModel):
+    empresa_id: str
+    nome_licenca: str
+    numero_licenca: str
     tipo: str
-    numero: Optional[str] = None
+    orgao_emissor: str
+    data_emissao: str
+    data_validade: str
+    dias_alerta_vencimento: int = 30
+    observacoes: Optional[str] = None
+
+class LicencaDocumentoUpdate(BaseModel):
+    nome_licenca: Optional[str] = None
+    numero_licenca: Optional[str] = None
+    tipo: Optional[str] = None
     orgao_emissor: Optional[str] = None
     data_emissao: Optional[str] = None
     data_validade: Optional[str] = None
-    status: str = "valida"
+    dias_alerta_vencimento: Optional[int] = None
+    observacoes: Optional[str] = None
 
 # Auth Helper
 async def get_current_user(request: Request) -> User:

@@ -175,6 +175,18 @@ const ClientesPage = ({ user }) => {
                 </div>
               </div>
               <div>
+                <Label htmlFor="tipo_estabelecimento">Tipo de Estabelecimento *</Label>
+                <Select value={formData.tipo_estabelecimento} onValueChange={(v) => setFormData({...formData, tipo_estabelecimento: v})} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="matriz">Matriz</SelectItem>
+                    <SelectItem value="filial">Filial</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <Label htmlFor="endereco">Endereço *</Label>
                 <Input
                   id="endereco"

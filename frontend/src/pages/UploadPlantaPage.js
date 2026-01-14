@@ -67,6 +67,23 @@ const UploadPlantaPage = ({ user }) => {
       return;
     }
     
+    // Verificar se pode criar novo ticket
+    try {
+      const checkRes = await axios.get(`${API}/tickets/${empresaId}/pode-criar-novo?empresa_id=${empresaId}`, {
+        withCredentials: true
+      });
+      
+      if (!checkRes.data.pode_criar) {
+        toast.error('Já existe um ticket em andamento para esta empresa. Finalize-o antes de criar um novo.');
+        if (checkRes.data.ticket_aberto) {
+          navigate(`/tickets/${checkRes.data.ticket_aberto.ticket_id}`);
+        }
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking ticket:', error);
+    }
+    
     if (!selectedFile || !plantaNome) {
       toast.error('Selecione um arquivo e dê um nome à planta');
       return;

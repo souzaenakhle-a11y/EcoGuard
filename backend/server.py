@@ -1276,19 +1276,24 @@ async def add_ticket_mensagem(ticket_id: str, mensagem: str, tipo: str, request:
     return {"message": "Mensagem adicionada"}
 
 @api_router.put("/tickets/{ticket_id}/status")
-async def update_ticket_status(ticket_id: str, status: str, request: Request):
+async def update_ticket_status(ticket_id: str, status: str, etapa: str, request: Request):
     user = await get_current_user(request)
     
+    ticket = await db.tickets.find_one({"ticket_id": ticket_id}, {"_id": 0})
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    
     # Apenas gestor pode mudar certos status
-    if status in ["aguardando_cliente", "fechado"] and not is_gestor(user):
+    if etapa in ["aguardando_fotos_cliente", "concluido"] and not is_gestor(user):
         raise HTTPException(status_code=403, detail="Apenas gestores podem alterar este status")
     
     await db.tickets.update_one(
         {"ticket_id": ticket_id},
         {"$set": {
             "status": status,
+            "etapa": etapa,
             "updated_at": datetime.now(timezone.utc),
-            "closed_at": datetime.now(timezone.utc) if status == "fechado" else None
+            "closed_at": datetime.now(timezone.utc) if etapa == "finalizado" else None
         }}
     )
     
@@ -1297,11 +1302,13 @@ async def update_ticket_status(ticket_id: str, status: str, request: Request):
     user_role = "gestor" if is_gestor(user) else "cliente"
     
     status_map = {
-        "aberto": "Ticket aberto",
-        "aguardando_cliente": "Aguardando resposta do cliente",
-        "em_analise": "Em análise pela equipe",
-        "fechado": "Ticket fechado"
+        "mapeamento_gestor": "Aguardando mapeamento das áreas pelo gestor",
+        "upload_fotos_cliente": "Áreas mapeadas. Aguardando upload de fotos pelo cliente",
+        "analise_gestor": "Fotos enviadas. Aguardando análise do gestor",
+        "finalizado": "Ticket concluído. Relatório disponível"
     }
+    
+    mensagem_texto = status_map.get(etapa, f"Status alterado para: {status}")
     
     await db.ticket_mensagens.insert_one({
         "mensagem_id": mensagem_id,
@@ -1309,10 +1316,35 @@ async def update_ticket_status(ticket_id: str, status: str, request: Request):
         "user_id": user.user_id,
         "user_email": user.email,
         "user_role": user_role,
-        "mensagem": status_map.get(status, f"Status alterado para: {status}"),
+        "mensagem": mensagem_texto,
         "tipo": "status_change",
         "created_at": datetime.now(timezone.utc)
     })
+    
+    # Enviar emails de notificação
+    cliente_email = ticket["user_email"]
+    
+    if etapa == "upload_fotos_cliente":
+        # Gestor mapeou áreas, notificar cliente
+        enviar_email_notificacao(
+            cliente_email,
+            f"Atualização Ticket #{ticket_id[-8:]} - EcoGuard",
+            f"Seu ticket foi atualizado. As áreas críticas foram mapeadas. Acesse o sistema para enviar as fotos solicitadas."
+        )
+    elif etapa == "analise_gestor":
+        # Cliente enviou fotos, notificar gestor
+        enviar_email_notificacao(
+            GESTORES_EMAILS[0],
+            f"Atualização Ticket #{ticket_id[-8:]} - EcoGuard",
+            f"O cliente {cliente_email} enviou as fotos. Acesse o sistema para análise."
+        )
+    elif etapa == "finalizado":
+        # Gestor finalizou, notificar cliente
+        enviar_email_notificacao(
+            cliente_email,
+            f"Ticket #{ticket_id[-8:]} Concluído - EcoGuard",
+            f"Seu ticket foi concluído. O relatório está disponível no sistema."
+        )
     
     return {"message": "Status atualizado"}
 

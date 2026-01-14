@@ -116,7 +116,8 @@ function AppRouter() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/" element={<Navigate to="/home" replace />} />
+      <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/welcome" element={<ProtectedRoute><WelcomePage /></ProtectedRoute>} />
       <Route path="/upload-planta" element={<ProtectedRoute><UploadPlantaPage /></ProtectedRoute>} />
@@ -124,6 +125,10 @@ function AppRouter() {
       <Route path="/iniciar-inspecao/:empresaId" element={<ProtectedRoute><IniciarInspecaoPage /></ProtectedRoute>} />
       <Route path="/inspecao/:inspecaoId" element={<ProtectedRoute><ChecklistItemPage /></ProtectedRoute>} />
       <Route path="/resultado/:inspecaoId" element={<ProtectedRoute><ResultadoInspecaoPage /></ProtectedRoute>} />
+      <Route path="/licencas" element={<ProtectedRoute><LicencasPage /></ProtectedRoute>} />
+      <Route path="/licencas/cadastro" element={<ProtectedRoute><LicencasCadastroPage /></ProtectedRoute>} />
+      <Route path="/licencas/indicadores" element={<ProtectedRoute><LicencasIndicadoresPage /></ProtectedRoute>} />
+      <Route path="/clientes" element={<ProtectedRoute><ClientesPage /></ProtectedRoute>} />
     </Routes>
   );
 }

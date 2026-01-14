@@ -41,9 +41,24 @@ class UserSession(BaseModel):
     expires_at: datetime
     created_at: datetime
 
+class Cliente(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    cliente_id: str
+    user_id: str
+    nome: str
+    email: str
+    telefone: Optional[str] = None
+    created_at: datetime
+
+class ClienteCreate(BaseModel):
+    nome: str
+    email: str
+    telefone: Optional[str] = None
+
 class Empresa(BaseModel):
     model_config = ConfigDict(extra="ignore")
     empresa_id: str
+    cliente_id: str
     user_id: str
     nome: str
     cnpj: str
@@ -53,6 +68,7 @@ class Empresa(BaseModel):
     updated_at: datetime
 
 class EmpresaCreate(BaseModel):
+    cliente_id: str
     nome: str
     cnpj: str
     setor: str

@@ -96,12 +96,12 @@ const UploadPlantaPage = ({ user }) => {
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         <Button
           variant="ghost"
-          onClick={() => step === 1 ? navigate('/welcome') : setStep(1)}
+          onClick={() => navigate('/home')}
           className="mb-6"
-          data-testid="back-button"
+          data-testid="home-button"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Voltar
+          Home
         </Button>
 
         {step === 1 ? (

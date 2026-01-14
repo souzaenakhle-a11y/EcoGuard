@@ -43,7 +43,7 @@ function AuthCallback() {
           { withCredentials: true }
         );
 
-        navigate('/dashboard', { state: { user: response.data }, replace: true });
+        navigate('/home', { state: { user: response.data }, replace: true });
       } catch (error) {
         console.error('Auth error:', error);
         navigate('/login', { replace: true });

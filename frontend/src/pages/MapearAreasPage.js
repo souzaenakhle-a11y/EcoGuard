@@ -167,11 +167,11 @@ const MapearAreasPage = ({ user }) => {
         <div className="flex justify-between items-center mb-6">
           <Button
             variant="ghost"
-            onClick={() => navigate('/upload-planta')}
-            data-testid="back-button"
+            onClick={() => navigate('/home')}
+            data-testid="home-button"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar
+            Home
           </Button>
           <Button
             onClick={handleContinue}

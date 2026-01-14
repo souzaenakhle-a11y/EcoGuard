@@ -1348,6 +1348,68 @@ async def update_ticket_status(ticket_id: str, status: str, etapa: str, request:
     
     return {"message": "Status atualizado"}
 
+@api_router.post("/tickets/{ticket_id}/upload-foto")
+async def upload_foto_area(
+    ticket_id: str,
+    area_id: str = Form(...),
+    foto: UploadFile = File(...),
+    request: Request = None
+):
+    user = await get_current_user(request)
+    
+    # Cliente envia foto
+    file_content = await foto.read()
+    file_id = await fs.upload_from_stream(
+        foto.filename,
+        io.BytesIO(file_content),
+        metadata={"content_type": foto.content_type}
+    )
+    
+    # Salvar foto na área
+    await db.areas_criticas.update_one(
+        {"area_id": area_id},
+        {"$set": {"foto_cliente_id": str(file_id)}}
+    )
+    
+    return {"message": "Foto enviada com sucesso", "foto_id": str(file_id)}
+
+@api_router.post("/tickets/{ticket_id}/analise-area")
+async def analisar_area_gestor(
+    ticket_id: str,
+    area_id: str = Form(...),
+    situacao: str = Form(...),  # conforme, nao_conforme, nao_aplicavel
+    observacao: str = Form(None),
+    request: Request = None
+):
+    user = await get_current_user(request)
+    
+    if not is_gestor(user):
+        raise HTTPException(status_code=403, detail="Apenas gestores podem analisar")
+    
+    # Gestor analisa a foto enviada pelo cliente
+    await db.areas_criticas.update_one(
+        {"area_id": area_id},
+        {"$set": {
+            "situacao_gestor": situacao,
+            "observacao_gestor": observacao,
+            "analisado_em": datetime.now(timezone.utc)
+        }}
+    )
+    
+    return {"message": "Análise registrada"}
+
+@api_router.get("/tickets/{ticket_id}/pode-criar-novo")
+async def pode_criar_novo_ticket(empresa_id: str, request: Request):
+    user = await get_current_user(request)
+    
+    # Verificar se há tickets não finalizados
+    ticket_aberto = await db.tickets.find_one({
+        "empresa_id": empresa_id,
+        "etapa": {"$ne": "finalizado"}
+    }, {"_id": 0})
+    
+    return {"pode_criar": ticket_aberto is None, "ticket_aberto": ticket_aberto}
+
 app.include_router(api_router)
 
 app.add_middleware(

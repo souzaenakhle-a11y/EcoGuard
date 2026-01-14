@@ -805,25 +805,39 @@ async def create_licenca(licenca_data: LicencaDocumentoCreate, request: Request)
     user = await get_current_user(request)
     
     licenca_id = f"lic_{uuid.uuid4().hex[:12]}"
-    licenca_dict = {
-        "licenca_id": licenca_id,
-        **licenca_data.model_dump(),
-        "created_at": datetime.now(timezone.utc),
-        "updated_at": datetime.now(timezone.utc)
-    }
     
-    licenca_dict["data_emissao"] = datetime.fromisoformat(licenca_dict["data_emissao"])
-    licenca_dict["data_validade"] = datetime.fromisoformat(licenca_dict["data_validade"])
+    data_emissao = datetime.fromisoformat(licenca_data.data_emissao)
+    if data_emissao.tzinfo is None:
+        data_emissao = data_emissao.replace(tzinfo=timezone.utc)
     
-    data_validade = licenca_dict["data_validade"]
+    data_validade = datetime.fromisoformat(licenca_data.data_validade)
+    if data_validade.tzinfo is None:
+        data_validade = data_validade.replace(tzinfo=timezone.utc)
+    
     dias_restantes = (data_validade - datetime.now(timezone.utc)).days
     
     if dias_restantes < 0:
-        licenca_dict["status"] = "vencida"
-    elif dias_restantes <= licenca_dict.get("dias_alerta_vencimento", 30):
-        licenca_dict["status"] = "a_vencer"
+        status = "vencida"
+    elif dias_restantes <= licenca_data.dias_alerta_vencimento:
+        status = "a_vencer"
     else:
-        licenca_dict["status"] = "valida"
+        status = "valida"
+    
+    licenca_dict = {
+        "licenca_id": licenca_id,
+        "empresa_id": licenca_data.empresa_id,
+        "nome_licenca": licenca_data.nome_licenca,
+        "numero_licenca": licenca_data.numero_licenca,
+        "tipo": licenca_data.tipo,
+        "orgao_emissor": licenca_data.orgao_emissor,
+        "data_emissao": data_emissao,
+        "data_validade": data_validade,
+        "dias_alerta_vencimento": licenca_data.dias_alerta_vencimento,
+        "observacoes": licenca_data.observacoes,
+        "status": status,
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc)
+    }
     
     await db.licencas_documentos.insert_one(licenca_dict)
     licenca_doc = await db.licencas_documentos.find_one({"licenca_id": licenca_id}, {"_id": 0})

@@ -124,15 +124,30 @@ const MapearAreasPage = ({ user }) => {
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (areas.length === 0) {
       toast.error('Adicione pelo menos uma área crítica');
       return;
     }
     
-    const empresaId = planta?.empresa_id;
-    if (empresaId) {
-      navigate(`/iniciar-inspecao/${empresaId}`);
+    try {
+      await axios.put(
+        `${API}/plantas/${plantaId}`,
+        { status: 'mapeada' },
+        { withCredentials: true }
+      );
+      
+      const plantaDoc = await axios.get(`${API}/plantas/${plantaId}`, { withCredentials: true });
+      const empresaId = plantaDoc.data.empresa_id;
+      
+      if (empresaId) {
+        navigate(`/iniciar-inspecao/${empresaId}`);
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Error updating planta:', error);
+      navigate('/dashboard');
     }
   };
 

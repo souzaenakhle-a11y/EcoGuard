@@ -410,6 +410,7 @@ async def create_empresa(empresa_data: EmpresaCreate, request: Request):
     empresa_id = f"emp_{uuid.uuid4().hex[:12]}"
     empresa_dict = {
         "empresa_id": empresa_id,
+        "cliente_id": "default_client",
         "user_id": user.user_id,
         **empresa_data.model_dump(),
         "created_at": datetime.now(timezone.utc),

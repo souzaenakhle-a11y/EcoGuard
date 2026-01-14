@@ -59,6 +59,15 @@ const HomePage = ({ user }) => {
 
   const modules = [
     {
+      title: 'Cadastro de Empresas',
+      description: 'Cadastre e gerencie empreendimentos',
+      icon: Building,
+      color: 'bg-blue-100 text-blue-600',
+      route: '/clientes',
+      testId: 'module-empresas',
+      priority: true
+    },
+    {
       title: 'Auto-Fiscalização',
       description: 'Realize inspeções preventivas e evite multas ambientais',
       icon: CheckCircle,
@@ -81,14 +90,6 @@ const HomePage = ({ user }) => {
       color: 'bg-accent/10 text-accent-foreground',
       route: '/licencas/indicadores',
       testId: 'module-indicadores'
-    },
-    {
-      title: 'Gestão de Clientes',
-      description: 'Cadastre e gerencie seus clientes e empresas',
-      icon: Users,
-      color: 'bg-blue-100 text-blue-600',
-      route: '/clientes',
-      testId: 'module-clientes'
     }
   ];
 

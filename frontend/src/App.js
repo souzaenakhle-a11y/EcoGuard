@@ -16,6 +16,8 @@ import LicencasPage from './pages/LicencasPage';
 import LicencasCadastroPage from './pages/LicencasCadastroPage';
 import LicencasIndicadoresPage from './pages/LicencasIndicadoresPage';
 import ClientesPage from './pages/ClientesPage';
+import TicketsPage from './pages/TicketsPage';
+import TicketDetalhesPage from './pages/TicketDetalhesPage';
 import { Toaster } from 'sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;

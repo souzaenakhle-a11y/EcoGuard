@@ -273,6 +273,17 @@ class LicencaDocumentoUpdate(BaseModel):
 # Auth Helper
 GESTORES_EMAILS = ["souzaenakhle@gmail.com"]
 
+def enviar_email_notificacao(destinatario_email: str, assunto: str, mensagem: str):
+    """Simula envio de email (em produção usar SMTP real)"""
+    try:
+        logger.info(f"📧 EMAIL ENVIADO:")
+        logger.info(f"   Para: {destinatario_email}")
+        logger.info(f"   Assunto: {assunto}")
+        logger.info(f"   Mensagem: {mensagem}")
+        logger.info("=" * 50)
+    except Exception as e:
+        logger.error(f"Erro ao enviar email: {e}")
+
 async def get_current_user(request: Request) -> User:
     session_token = request.cookies.get("session_token")
     if not session_token:

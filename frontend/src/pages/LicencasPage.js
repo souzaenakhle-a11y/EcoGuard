@@ -202,12 +202,26 @@ const LicencasPage = ({ user }) => {
         </div>
 
         <div className="grid gap-4">
-          {filteredLicencas.length === 0 ? (
+          {empresas.length === 0 ? (
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center py-12">
+                  <Building className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-lg font-semibold mb-2">Nenhuma empresa cadastrada</p>
+                  <p className="text-muted-foreground mb-4">Cadastre uma empresa antes de gerenciar licenças</p>
+                  <Button onClick={() => navigate('/clientes')}>
+                    Cadastrar Empresa
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : filteredLicencas.length === 0 ? (
             <Card>
               <CardContent className="pt-6">
                 <div className="text-center py-12">
                   <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground mb-4">Nenhuma licença encontrada</p>
+                  <p className="text-lg font-semibold mb-2">Nenhuma licença cadastrada</p>
+                  <p className="text-muted-foreground mb-4">Comece cadastrando sua primeira licença ambiental</p>
                   <Button onClick={() => navigate('/licencas/cadastro')}>
                     Cadastrar Primeira Licença
                   </Button>

@@ -127,11 +127,11 @@ const ResultadoInspecaoPage = ({ user }) => {
 
         <div className="grid gap-3">
           <Button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/home')}
             className="w-full py-6"
-            data-testid="dashboard-button"
+            data-testid="home-button"
           >
-            Ver Dashboard Completo
+            Voltar para Home
           </Button>
           <Button
             variant="outline"

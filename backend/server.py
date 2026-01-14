@@ -101,8 +101,10 @@ class Ticket(BaseModel):
     ticket_id: str
     empresa_id: str
     user_id: str
+    user_email: str
     planta_id: str
-    status: str  # aberto, aguardando_cliente, em_analise, fechado
+    status: str  # aberto, aguardando_fotos_cliente, aguardando_analise_gestor, concluido
+    etapa: str  # mapeamento_gestor, upload_fotos_cliente, analise_gestor, finalizado
     created_at: datetime
     updated_at: datetime
     closed_at: Optional[datetime] = None

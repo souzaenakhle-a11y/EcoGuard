@@ -93,6 +93,28 @@ class PlantaEstabelecimento(BaseModel):
     status: str = "aguardando_marcacao"
     created_at: datetime
 
+class Ticket(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    ticket_id: str
+    empresa_id: str
+    user_id: str
+    planta_id: str
+    status: str  # aberto, aguardando_cliente, em_analise, fechado
+    created_at: datetime
+    updated_at: datetime
+    closed_at: Optional[datetime] = None
+
+class TicketMensagem(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    mensagem_id: str
+    ticket_id: str
+    user_id: str
+    user_email: str
+    user_role: str  # cliente ou gestor
+    mensagem: str
+    tipo: str  # mensagem, status_change, apontamento
+    created_at: datetime
+
 class AreaCritica(BaseModel):
     model_config = ConfigDict(extra="ignore")
     area_id: str

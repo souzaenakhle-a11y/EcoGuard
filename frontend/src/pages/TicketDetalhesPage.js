@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Home, Send } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Home, Send, Camera, CheckCircle, XCircle, Minus } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -21,6 +24,9 @@ const TicketDetalhesPage = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [isGestor, setIsGestor] = useState(false);
+  const [fotosPorArea, setFotosPorArea] = useState({});
+  const [analisesPorArea, setAnalisesPorArea] = useState({});
+  const fileInputRefs = useRef({});
 
   useEffect(() => {
     fetchTicket();
@@ -64,10 +70,10 @@ const TicketDetalhesPage = ({ user }) => {
     }
   };
 
-  const handleChangeStatus = async (newStatus) => {
+  const handleChangeStatus = async (newStatus, newEtapa) => {
     try {
       await axios.put(
-        `${API}/tickets/${ticketId}/status?status=${newStatus}`,
+        `${API}/tickets/${ticketId}/status?status=${newStatus}&etapa=${newEtapa}`,
         {},
         { withCredentials: true }
       );
@@ -81,6 +87,77 @@ const TicketDetalhesPage = ({ user }) => {
 
   const handleMapearAreas = () => {
     navigate(`/mapear-areas/${ticket.planta_id}?ticket=${ticketId}`);
+  };
+
+  const handleUploadFoto = async (areaId) => {
+    const file = fotosPorArea[areaId];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('area_id', areaId);
+    formData.append('foto', file);
+
+    try {
+      await axios.post(`${API}/tickets/${ticketId}/upload-foto`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        withCredentials: true
+      });
+      toast.success('Foto enviada!');
+      setFotosPorArea({...fotosPorArea, [areaId]: null});
+    } catch (error) {
+      console.error('Error uploading foto:', error);
+      toast.error('Erro ao enviar foto');
+    }
+  };
+
+  const handleAnalisarArea = async (areaId) => {
+    const analise = analisesPorArea[areaId];
+    if (!analise?.situacao) {
+      toast.error('Selecione a situação encontrada');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('area_id', areaId);
+    formData.append('situacao', analise.situacao);
+    formData.append('observacao', analise.observacao || '');
+
+    try {
+      await axios.post(`${API}/tickets/${ticketId}/analise-area`, formData, {
+        withCredentials: true
+      });
+      toast.success('Análise registrada!');
+      fetchTicket();
+    } catch (error) {
+      console.error('Error analyzing area:', error);
+      toast.error('Erro ao registrar análise');
+    }
+  };
+
+  const handleEnviarTodasFotos = async () => {
+    const areasComFoto = ticket.areas.filter(a => fotosPorArea[a.area_id]);
+    if (areasComFoto.length === 0) {
+      toast.error('Envie pelo menos uma foto');
+      return;
+    }
+
+    for (const area of areasComFoto) {
+      await handleUploadFoto(area.area_id);
+    }
+
+    await handleChangeStatus('aguardando_analise_gestor', 'analise_gestor');
+    toast.success('Todas as fotos foram enviadas para análise!');
+  };
+
+  const handleFinalizarAnalise = async () => {
+    const todasAnalisadas = ticket.areas.every(a => a.situacao_gestor);
+    if (!todasAnalisadas) {
+      toast.error('Analise todas as áreas antes de finalizar');
+      return;
+    }
+
+    await handleChangeStatus('concluido', 'finalizado');
+    toast.success('Ticket finalizado! Relatório disponível.');
   };
 
   if (loading || !ticket) {
@@ -109,44 +186,83 @@ const TicketDetalhesPage = ({ user }) => {
         <div className="grid gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Informações do Ticket</CardTitle>
+              <CardTitle>Status: {ticket.etapa?.replace(/_/g, ' ').toUpperCase()}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Status</p>
-                  <p className="font-medium">{ticket.status}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Empresa</p>
-                  <p className="font-medium">{ticket.empresa?.nome}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Planta</p>
-                  <p className="font-medium">{ticket.planta?.nome}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Criado em</p>
-                  <p className="font-medium">{format(new Date(ticket.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
-                </div>
-              </div>
+              {isGestor && ticket.etapa === 'mapeamento_gestor' && (
+                <Button onClick={handleMapearAreas} className="w-full">
+                  Mapear Áreas Críticas
+                </Button>
+              )}
 
-              {isGestor && ticket.status === 'aberto' && (
-                <div className="mt-6">
-                  <Button onClick={handleMapearAreas} className="w-full">
-                    Mapear Áreas Críticas
+              {!isGestor && ticket.etapa === 'upload_fotos_cliente' && ticket.areas?.length > 0 && (
+                <div className="space-y-4">
+                  <p className="text-sm font-medium">Envie fotos das áreas críticas marcadas:</p>
+                  {ticket.areas.map((area) => (
+                    <div key={area.area_id} className="p-4 border rounded-md">
+                      <p className="font-medium mb-2">{area.nome}</p>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={(e) => setFotosPorArea({...fotosPorArea, [area.area_id]: e.target.files[0]})}
+                        className="w-full"
+                      />
+                    </div>
+                  ))}
+                  <Button onClick={handleEnviarTodasFotos} className="w-full">
+                    Enviar Todas as Fotos
                   </Button>
                 </div>
               )}
 
-              {isGestor && ticket.status === 'em_analise' && ticket.areas?.length > 0 && (
-                <div className="mt-6 flex gap-3">
-                  <Button onClick={() => handleChangeStatus('aguardando_cliente')} className="flex-1">
-                    Enviar para Cliente
+              {isGestor && ticket.etapa === 'analise_gestor' && ticket.areas?.length > 0 && (
+                <div className="space-y-4">
+                  <p className="text-sm font-medium">Analise as fotos enviadas:</p>
+                  {ticket.areas.map((area) => (
+                    <div key={area.area_id} className="p-4 border rounded-md space-y-3">
+                      <p className="font-medium">{area.nome}</p>
+                      <Select
+                        value={analisesPorArea[area.area_id]?.situacao || ''}
+                        onValueChange={(v) => setAnalisesPorArea({
+                          ...analisesPorArea,
+                          [area.area_id]: {...analisesPorArea[area.area_id], situacao: v}
+                        })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Situação encontrada" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="conforme">✓ Conforme</SelectItem>
+                          <SelectItem value="nao_conforme">✗ Não Conforme</SelectItem>
+                          <SelectItem value="nao_aplicavel">— Não Aplicável</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Textarea
+                        placeholder="Observações..."
+                        value={analisesPorArea[area.area_id]?.observacao || ''}
+                        onChange={(e) => setAnalisesPorArea({
+                          ...analisesPorArea,
+                          [area.area_id]: {...analisesPorArea[area.area_id], observacao: e.target.value}
+                        })}
+                        rows={2}
+                      />
+                      <Button onClick={() => handleAnalisarArea(area.area_id)} size="sm" className="w-full">
+                        Salvar Análise
+                      </Button>
+                    </div>
+                  ))}
+                  <Button onClick={handleFinalizarAnalise} className="w-full">
+                    Finalizar e Enviar Relatório
                   </Button>
-                  <Button onClick={() => handleChangeStatus('fechado')} variant="outline" className="flex-1">
-                    Fechar Ticket
-                  </Button>
+                </div>
+              )}
+
+              {ticket.etapa === 'finalizado' && (
+                <div className="text-center py-8">
+                  <CheckCircle className="w-16 h-16 text-success mx-auto mb-4" />
+                  <p className="text-lg font-semibold">Ticket Finalizado</p>
+                  <p className="text-sm text-muted-foreground">Relatório completo disponível</p>
                 </div>
               )}
             </CardContent>
@@ -154,7 +270,7 @@ const TicketDetalhesPage = ({ user }) => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Histórico de Mensagens</CardTitle>
+              <CardTitle>Histórico</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4 max-h-96 overflow-y-auto">

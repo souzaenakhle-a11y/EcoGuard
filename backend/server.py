@@ -268,6 +268,8 @@ class LicencaDocumentoUpdate(BaseModel):
     observacoes: Optional[str] = None
 
 # Auth Helper
+GESTORES_EMAILS = ["souzaenakhle@gmail.com"]
+
 async def get_current_user(request: Request) -> User:
     session_token = request.cookies.get("session_token")
     if not session_token:

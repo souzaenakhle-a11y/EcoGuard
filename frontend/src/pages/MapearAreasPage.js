@@ -17,6 +17,8 @@ const API = `${BACKEND_URL}/api`;
 const MapearAreasPage = ({ user }) => {
   const navigate = useNavigate();
   const { plantaId } = useParams();
+  const [searchParams] = useSearchParams();
+  const ticketId = searchParams.get('ticket');
   const [planta, setPlanta] = useState(null);
   const [plantaUrl, setPlantaUrl] = useState(null);
   const [areas, setAreas] = useState([]);

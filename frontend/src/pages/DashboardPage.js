@@ -357,9 +357,9 @@ const DashboardPage = ({ user }) => {
             <Plus className="w-4 h-4 mr-2" />
             Nova Inspeção
           </Button>
-          <Button variant="outline" className="flex-1">
+          <Button variant="outline" onClick={() => navigate('/upload-planta')} className="flex-1">
             <FileText className="w-4 h-4 mr-2" />
-            Ver Histórico
+            Nova Planta
           </Button>
         </div>
       </div>

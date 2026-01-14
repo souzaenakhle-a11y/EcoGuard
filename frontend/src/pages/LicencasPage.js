@@ -62,11 +62,11 @@ const LicencasPage = ({ user }) => {
       );
     }
 
-    if (statusFilter) {
+    if (statusFilter && statusFilter !== 'all') {
       filtered = filtered.filter(l => l.status === statusFilter);
     }
 
-    if (empresaFilter) {
+    if (empresaFilter && empresaFilter !== 'all') {
       filtered = filtered.filter(l => l.empresa_id === empresaFilter);
     }
 

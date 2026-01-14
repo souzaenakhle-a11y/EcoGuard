@@ -14,31 +14,29 @@ const API = `${BACKEND_URL}/api`;
 
 const UploadPlantaPage = ({ user }) => {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
-  const [empresaData, setEmpresaData] = useState({
-    nome: '',
-    cnpj: '',
-    setor: '',
-    endereco: ''
-  });
-  const [empresaId, setEmpresaId] = useState(null);
+  const [empresas, setEmpresas] = useState([]);
+  const [empresaId, setEmpresaId] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [plantaNome, setPlantaNome] = useState('');
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const handleEmpresaSubmit = async (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    fetchEmpresas();
+  }, []);
+
+  const fetchEmpresas = async () => {
     try {
-      const response = await axios.post(`${API}/empresas`, empresaData, {
-        withCredentials: true
-      });
-      setEmpresaId(response.data.empresa_id);
-      setStep(2);
-      toast.success('Empresa cadastrada com sucesso!');
+      const response = await axios.get(`${API}/empresas`, { withCredentials: true });
+      setEmpresas(response.data);
+      if (response.data.length > 0) {
+        setEmpresaId(response.data[0].empresa_id);
+      }
+      setLoading(false);
     } catch (error) {
-      console.error('Error creating empresa:', error);
-      toast.error('Erro ao cadastrar empresa');
+      console.error('Error fetching empresas:', error);
+      setLoading(false);
     }
   };
 

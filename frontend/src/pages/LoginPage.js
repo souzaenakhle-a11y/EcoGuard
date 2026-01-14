@@ -32,7 +32,7 @@ const LoginPage = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h2 className="text-3xl font-bold text-foreground mb-2">EcoGuard Pro</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-2">EcoGuard</h2>
             <p className="text-muted-foreground">Faça login para continuar</p>
           </div>
 

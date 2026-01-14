@@ -104,7 +104,7 @@ const HomePage = ({ user }) => {
                 <Factory className="w-6 h-6 text-white" />
               </div>
               <div>
-                <span className="text-xl font-bold">EcoGuard Pro</span>
+                <span className="text-xl font-bold">EcoGuard</span>
                 <p className="text-sm text-muted-foreground">Sistema de Gestão Ambiental</p>
               </div>
             </div>
@@ -122,7 +122,7 @@ const HomePage = ({ user }) => {
       <div className="container mx-auto px-4 py-8">
         {/* Hero Section */}
         <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-3">Bem-vindo ao EcoGuard Pro</h1>
+          <h1 className="text-4xl font-bold mb-3">Bem-vindo ao EcoGuard</h1>
           <p className="text-lg text-muted-foreground">
             Gestão completa de conformidade ambiental em um só lugar
           </p>

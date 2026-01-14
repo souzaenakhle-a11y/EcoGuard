@@ -64,7 +64,7 @@ const WelcomePage = ({ user }) => {
             <div className="w-10 h-10 bg-primary rounded-md flex items-center justify-center">
               <Factory className="w-6 h-6 text-white" />
             </div>
-            <span className="text-xl font-bold">EcoGuard Pro</span>
+            <span className="text-xl font-bold">EcoGuard</span>
           </div>
           <Button variant="outline" size="sm" onClick={handleLogout} data-testid="logout-button">
             <LogOut className="w-4 h-4 mr-2" />

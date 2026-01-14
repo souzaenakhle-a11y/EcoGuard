@@ -152,7 +152,7 @@ const DashboardPage = ({ user }) => {
                 <Factory className="w-6 h-6 text-white" />
               </div>
               <div>
-                <span className="text-xl font-bold">EcoGuard Pro</span>
+                <span className="text-xl font-bold">EcoGuard</span>
                 <p className="text-sm text-muted-foreground">{selectedEmpresa?.nome}</p>
               </div>
             </div>

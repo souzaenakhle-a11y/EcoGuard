@@ -58,21 +58,30 @@ class ClienteCreate(BaseModel):
 class Empresa(BaseModel):
     model_config = ConfigDict(extra="ignore")
     empresa_id: str
-    cliente_id: str
+    cliente_id: Optional[str] = None
     user_id: str
     nome: str
     cnpj: str
     setor: str
+    tipo_estabelecimento: Optional[str] = "matriz"
     endereco: Optional[str] = None
+    responsavel: Optional[str] = None
+    telefone: Optional[str] = None
+    cidade: Optional[str] = None
+    estado: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
 class EmpresaCreate(BaseModel):
-    cliente_id: str
     nome: str
     cnpj: str
-    setor: str
+    setor: str = "Geral"
+    tipo_estabelecimento: str = "matriz"
     endereco: Optional[str] = None
+    responsavel: Optional[str] = None
+    telefone: Optional[str] = None
+    cidade: Optional[str] = None
+    estado: Optional[str] = None
 
 class PlantaEstabelecimento(BaseModel):
     model_config = ConfigDict(extra="ignore")

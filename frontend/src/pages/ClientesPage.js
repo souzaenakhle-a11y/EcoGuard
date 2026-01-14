@@ -48,11 +48,11 @@ const ClientesPage = ({ user }) => {
     e.preventDefault();
     try {
       const empresaData = {
-        cliente_id: 'default_client',
         nome: formData.nome,
         cnpj: formData.cnpj,
         setor: 'Geral',
-        endereco: `${formData.endereco}, ${formData.cidade} - ${formData.estado}`,
+        tipo_estabelecimento: formData.tipo_estabelecimento,
+        endereco: formData.endereco,
         responsavel: formData.responsavel,
         telefone: formData.telefone,
         cidade: formData.cidade,
@@ -63,7 +63,7 @@ const ClientesPage = ({ user }) => {
       toast.success('Empresa cadastrada com sucesso!');
       fetchEmpresas();
       setShowDialog(false);
-      setFormData({ nome: '', cnpj: '', endereco: '', responsavel: '', telefone: '', cidade: '', estado: '' });
+      setFormData({ nome: '', cnpj: '', endereco: '', responsavel: '', telefone: '', cidade: '', estado: '', tipo_estabelecimento: 'matriz' });
     } catch (error) {
       console.error('Error saving empresa:', error);
       toast.error('Erro ao salvar empresa');

@@ -139,17 +139,28 @@ const MapearAreasPage = ({ user }) => {
         { withCredentials: true }
       );
       
-      const plantaDoc = await axios.get(`${API}/plantas/${plantaId}`, { withCredentials: true });
-      const empresaId = plantaDoc.data.empresa_id;
-      
-      if (empresaId) {
-        navigate(`/iniciar-inspecao/${empresaId}`);
+      // Se vier de um ticket, atualizar o status do ticket
+      if (ticketId) {
+        await axios.put(
+          `${API}/tickets/${ticketId}/status?status=aguardando_fotos_cliente&etapa=upload_fotos_cliente`,
+          {},
+          { withCredentials: true }
+        );
+        toast.success('Áreas mapeadas! Cliente notificado para enviar fotos.');
+        navigate(`/tickets/${ticketId}`);
       } else {
-        navigate('/dashboard');
+        const plantaDoc = await axios.get(`${API}/plantas/${plantaId}`, { withCredentials: true });
+        const empresaId = plantaDoc.data.empresa_id;
+        
+        if (empresaId) {
+          navigate(`/iniciar-inspecao/${empresaId}`);
+        } else {
+          navigate('/dashboard');
+        }
       }
     } catch (error) {
       console.error('Error updating planta:', error);
-      navigate('/dashboard');
+      toast.error('Erro ao salvar mapeamento');
     }
   };
 

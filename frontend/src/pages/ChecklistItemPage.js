@@ -142,11 +142,11 @@ const ChecklistItemPage = ({ user }) => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate('/dashboard')}
-              data-testid="back-button"
+              onClick={() => navigate('/home')}
+              data-testid="home-button"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar
+              Home
             </Button>
             <span className="text-sm font-medium" data-testid="progress-text">
               {answeredCount}/{items.length} itens

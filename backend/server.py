@@ -841,7 +841,8 @@ async def create_licenca(licenca_data: LicencaDocumentoCreate, request: Request)
         "data_emissao": data_emissao,
         "data_validade": data_validade,
         "dias_alerta_vencimento": licenca_data.dias_alerta_vencimento,
-        "observacoes": licenca_data.observacoes,
+        "observacoes": licenca_data.observacoes or None,
+        "arquivo_id": None,
         "status": status,
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc)

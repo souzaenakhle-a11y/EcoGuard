@@ -62,6 +62,11 @@ const UploadPlantaPage = ({ user }) => {
   };
 
   const handleUpload = async () => {
+    if (!empresaId) {
+      toast.error('Selecione uma empresa');
+      return;
+    }
+    
     if (!selectedFile || !plantaNome) {
       toast.error('Selecione um arquivo e dê um nome à planta');
       return;
@@ -88,6 +93,29 @@ const UploadPlantaPage = ({ user }) => {
       setUploading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (empresas.length === 0) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <Building className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+          <h2 className="text-2xl font-bold mb-2">Nenhuma empresa cadastrada</h2>
+          <p className="text-muted-foreground mb-6">Cadastre uma empresa antes de fazer upload da planta</p>
+          <Button onClick={() => navigate('/clientes')}>
+            Cadastrar Empresa
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

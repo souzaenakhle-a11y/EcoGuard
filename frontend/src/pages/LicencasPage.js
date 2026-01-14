@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Home, Plus, Search, Filter, Download, Edit, Trash2, AlertTriangle, CheckCircle, FileText } from 'lucide-react';
+import { Home, Plus, Search, Filter, Download, Edit, Trash2, AlertTriangle, CheckCircle, FileText, Building } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';

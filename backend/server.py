@@ -350,11 +350,48 @@ async def logout(request: Request, response: Response):
     response.delete_cookie("session_token", path="/")
     return {"message": "Logged out"}
 
+# Cliente Routes
+@api_router.get("/clientes", response_model=List[Cliente])
+async def get_clientes(request: Request):
+    user = await get_current_user(request)
+    clientes = await db.clientes.find({"user_id": user.user_id}, {"_id": 0}).to_list(100)
+    return clientes
+
+@api_router.post("/clientes", response_model=Cliente)
+async def create_cliente(cliente_data: ClienteCreate, request: Request):
+    user = await get_current_user(request)
+    
+    cliente_id = f"cli_{uuid.uuid4().hex[:12]}"
+    cliente_dict = {
+        "cliente_id": cliente_id,
+        "user_id": user.user_id,
+        **cliente_data.model_dump(),
+        "created_at": datetime.now(timezone.utc)
+    }
+    
+    await db.clientes.insert_one(cliente_dict)
+    cliente_doc = await db.clientes.find_one({"cliente_id": cliente_id}, {"_id": 0})
+    return Cliente(**cliente_doc)
+
+@api_router.get("/clientes/{cliente_id}", response_model=Cliente)
+async def get_cliente(cliente_id: str, request: Request):
+    user = await get_current_user(request)
+    cliente = await db.clientes.find_one(
+        {"cliente_id": cliente_id, "user_id": user.user_id},
+        {"_id": 0}
+    )
+    if not cliente:
+        raise HTTPException(status_code=404, detail="Cliente not found")
+    return Cliente(**cliente)
+
 # Empresa Routes
 @api_router.get("/empresas", response_model=List[Empresa])
-async def get_empresas(request: Request):
+async def get_empresas(request: Request, cliente_id: Optional[str] = None):
     user = await get_current_user(request)
-    empresas = await db.empresas.find({"user_id": user.user_id}, {"_id": 0}).to_list(100)
+    query = {"user_id": user.user_id}
+    if cliente_id:
+        query["cliente_id"] = cliente_id
+    empresas = await db.empresas.find(query, {"_id": 0}).to_list(100)
     return empresas
 
 @api_router.post("/empresas", response_model=Empresa)

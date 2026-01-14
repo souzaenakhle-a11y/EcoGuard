@@ -503,8 +503,36 @@ async def upload_planta(
     }
     
     await db.plantas_estabelecimento.insert_one(planta_dict)
-    planta_doc = await db.plantas_estabelecimento.find_one({"planta_id": planta_id}, {"_id": 0})
-    return planta_doc
+    
+    # Criar ticket automaticamente
+    ticket_id = f"tkt_{uuid.uuid4().hex[:12]}"
+    ticket_dict = {
+        "ticket_id": ticket_id,
+        "empresa_id": empresa_id,
+        "user_id": user.user_id,
+        "planta_id": planta_id,
+        "status": "aberto",
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
+        "closed_at": None
+    }
+    await db.tickets.insert_one(ticket_dict)
+    
+    # Criar mensagem inicial
+    mensagem_id = f"msg_{uuid.uuid4().hex[:12]}"
+    await db.ticket_mensagens.insert_one({
+        "mensagem_id": mensagem_id,
+        "ticket_id": ticket_id,
+        "user_id": user.user_id,
+        "user_email": user.email,
+        "user_role": "cliente",
+        "mensagem": "Planta enviada para análise",
+        "tipo": "status_change",
+        "created_at": datetime.now(timezone.utc)
+    })
+    
+    planta_doc = await db.plantas_estabelecimento.find_one({planta_id": planta_id}, {"_id": 0})
+    return {**planta_doc, "ticket_id": ticket_id}
 
 @api_router.get("/plantas/{empresa_id}", response_model=List[PlantaEstabelecimento])
 async def get_plantas(empresa_id: str, request: Request):

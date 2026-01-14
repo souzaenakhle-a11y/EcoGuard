@@ -306,6 +306,9 @@ async def get_current_user(request: Request) -> User:
     
     return User(**user_doc)
 
+def is_gestor(user: User) -> bool:
+    return user.email in GESTORES_EMAILS
+
 # Auth Routes
 @api_router.post("/auth/session")
 async def create_session(request: Request, response: Response):

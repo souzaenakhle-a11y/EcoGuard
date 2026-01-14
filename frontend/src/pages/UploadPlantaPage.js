@@ -170,7 +170,7 @@ const UploadPlantaPage = ({ user }) => {
                     <Upload className="w-12 h-12 text-muted-foreground mb-4" />
                     <p className="text-base font-medium mb-2">Arraste o arquivo aqui</p>
                     <p className="text-sm text-muted-foreground mb-1">ou clique para selecionar</p>
-                    <p className="text-xs text-muted-foreground">Formatos: PDF, JPG, PNG</p>
+                    <p className="text-xs text-muted-foreground">Formatos: JPG, PNG</p>
                     <p className="text-xs text-muted-foreground">Tamanho máximo: 10MB</p>
                   </div>
                 )}

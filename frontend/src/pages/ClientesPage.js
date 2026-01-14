@@ -27,7 +27,8 @@ const ClientesPage = ({ user }) => {
     responsavel: '', 
     telefone: '', 
     cidade: '', 
-    estado: '' 
+    estado: '',
+    tipo_estabelecimento: 'matriz'
   });
 
   useEffect(() => {

@@ -1174,6 +1174,123 @@ async def update_alerta_status(alerta_id: str, status: str, request: Request):
     alerta_doc = await db.alertas.find_one({"alerta_id": alerta_id}, {"_id": 0})
     return alerta_doc
 
+# Tickets Routes
+@api_router.get("/tickets")
+async def get_tickets(request: Request):
+    user = await get_current_user(request)
+    
+    if is_gestor(user):
+        # Gestor vê todos os tickets
+        tickets = await db.tickets.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    else:
+        # Cliente vê apenas seus tickets
+        tickets = await db.tickets.find({"user_id": user.user_id}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    
+    # Enriquecer com dados da empresa e planta
+    for ticket in tickets:
+        empresa = await db.empresas.find_one({"empresa_id": ticket["empresa_id"]}, {"_id": 0})
+        planta = await db.plantas_estabelecimento.find_one({"planta_id": ticket["planta_id"]}, {"_id": 0})
+        ticket["empresa"] = empresa
+        ticket["planta"] = planta
+    
+    return tickets
+
+@api_router.get("/tickets/{ticket_id}")
+async def get_ticket(ticket_id: str, request: Request):
+    user = await get_current_user(request)
+    
+    ticket = await db.tickets.find_one({"ticket_id": ticket_id}, {"_id": 0})
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    
+    # Verificar permissão
+    if not is_gestor(user) and ticket["user_id"] != user.user_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Buscar mensagens
+    mensagens = await db.ticket_mensagens.find(
+        {"ticket_id": ticket_id},
+        {"_id": 0}
+    ).sort("created_at", 1).to_list(1000)
+    
+    # Buscar áreas (se existirem)
+    areas = await db.areas_criticas.find(
+        {"planta_id": ticket["planta_id"]},
+        {"_id": 0}
+    ).to_list(100)
+    
+    empresa = await db.empresas.find_one({"empresa_id": ticket["empresa_id"]}, {"_id": 0})
+    planta = await db.plantas_estabelecimento.find_one({"planta_id": ticket["planta_id"]}, {"_id": 0})
+    
+    return {
+        **ticket,
+        "mensagens": mensagens,
+        "areas": areas,
+        "empresa": empresa,
+        "planta": planta
+    }
+
+@api_router.post("/tickets/{ticket_id}/mensagem")
+async def add_ticket_mensagem(ticket_id: str, mensagem: str, tipo: str, request: Request):
+    user = await get_current_user(request)
+    
+    mensagem_id = f"msg_{uuid.uuid4().hex[:12]}"
+    user_role = "gestor" if is_gestor(user) else "cliente"
+    
+    await db.ticket_mensagens.insert_one({
+        "mensagem_id": mensagem_id,
+        "ticket_id": ticket_id,
+        "user_id": user.user_id,
+        "user_email": user.email,
+        "user_role": user_role,
+        "mensagem": mensagem,
+        "tipo": tipo,
+        "created_at": datetime.now(timezone.utc)
+    })
+    
+    return {"message": "Mensagem adicionada"}
+
+@api_router.put("/tickets/{ticket_id}/status")
+async def update_ticket_status(ticket_id: str, status: str, request: Request):
+    user = await get_current_user(request)
+    
+    # Apenas gestor pode mudar certos status
+    if status in ["aguardando_cliente", "fechado"] and not is_gestor(user):
+        raise HTTPException(status_code=403, detail="Apenas gestores podem alterar este status")
+    
+    await db.tickets.update_one(
+        {"ticket_id": ticket_id},
+        {"$set": {
+            "status": status,
+            "updated_at": datetime.now(timezone.utc),
+            "closed_at": datetime.now(timezone.utc) if status == "fechado" else None
+        }}
+    )
+    
+    # Registrar mudança de status
+    mensagem_id = f"msg_{uuid.uuid4().hex[:12]}"
+    user_role = "gestor" if is_gestor(user) else "cliente"
+    
+    status_map = {
+        "aberto": "Ticket aberto",
+        "aguardando_cliente": "Aguardando resposta do cliente",
+        "em_analise": "Em análise pela equipe",
+        "fechado": "Ticket fechado"
+    }
+    
+    await db.ticket_mensagens.insert_one({
+        "mensagem_id": mensagem_id,
+        "ticket_id": ticket_id,
+        "user_id": user.user_id,
+        "user_email": user.email,
+        "user_role": user_role,
+        "mensagem": status_map.get(status, f"Status alterado para: {status}"),
+        "tipo": "status_change",
+        "created_at": datetime.now(timezone.utc)
+    })
+    
+    return {"message": "Status atualizado"}
+
 app.include_router(api_router)
 
 app.add_middleware(

@@ -4,6 +4,7 @@ import axios from 'axios';
 import '@/App.css';
 import '@/index.css';
 import LoginPage from './pages/LoginPage';
+import HomePage from './pages/HomePage';
 import WelcomePage from './pages/WelcomePage';
 import UploadPlantaPage from './pages/UploadPlantaPage';
 import MapearAreasPage from './pages/MapearAreasPage';
@@ -11,6 +12,10 @@ import IniciarInspecaoPage from './pages/IniciarInspecaoPage';
 import ChecklistItemPage from './pages/ChecklistItemPage';
 import ResultadoInspecaoPage from './pages/ResultadoInspecaoPage';
 import DashboardPage from './pages/DashboardPage';
+import LicencasPage from './pages/LicencasPage';
+import LicencasCadastroPage from './pages/LicencasCadastroPage';
+import LicencasIndicadoresPage from './pages/LicencasIndicadoresPage';
+import ClientesPage from './pages/ClientesPage';
 import { Toaster } from 'sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;

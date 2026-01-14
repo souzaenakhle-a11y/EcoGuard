@@ -526,13 +526,22 @@ async def upload_planta(
         "ticket_id": ticket_id,
         "empresa_id": empresa_id,
         "user_id": user.user_id,
+        "user_email": user.email,
         "planta_id": planta_id,
         "status": "aberto",
+        "etapa": "mapeamento_gestor",
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc),
         "closed_at": None
     }
     await db.tickets.insert_one(ticket_dict)
+    
+    # Enviar email para gestor
+    enviar_email_notificacao(
+        GESTORES_EMAILS[0],
+        "Novo Ticket - EcoGuard",
+        f"Nova planta enviada por {user.email}. Ticket #{ticket_id[-8:]}. Acesse o sistema para mapear as áreas críticas."
+    )
     
     # Criar mensagem inicial
     mensagem_id = f"msg_{uuid.uuid4().hex[:12]}"

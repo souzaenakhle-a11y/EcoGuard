@@ -20,8 +20,8 @@ const LicencasPage = ({ user }) => {
   const [filteredLicencas, setFilteredLicencas] = useState([]);
   const [empresas, setEmpresas] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [empresaFilter, setEmpresaFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [empresaFilter, setEmpresaFilter] = useState('all');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

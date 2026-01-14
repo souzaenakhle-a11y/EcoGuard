@@ -39,13 +39,15 @@ const LicencasPage = ({ user }) => {
         axios.get(`${API}/empresas`, { withCredentials: true })
       ]);
       
-      setLicencas(licencasRes.data);
-      setFilteredLicencas(licencasRes.data);
-      setEmpresas(empresasRes.data);
+      setLicencas(licencasRes.data || []);
+      setFilteredLicencas(licencasRes.data || []);
+      setEmpresas(empresasRes.data || []);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching data:', error);
-      toast.error('Erro ao carregar licenças');
+      setLicencas([]);
+      setFilteredLicencas([]);
+      setEmpresas([]);
       setLoading(false);
     }
   };

@@ -1,0 +1,142 @@
+{
+  "design_system": {
+    "identity": {
+      "name": "EcoGuard Pro",
+      "archetype": "The Technical Field Guide",
+      "description": "A fusion of Swiss Authority (precision, grids) and Organic Earthy (environmental context). It feels like a high-end digital clipboard for field engineers.",
+      "principles": [
+        "Fusion: Technical Precision + Organic Context",
+        "Clarity: Data is the hero, decoration is the enemy",
+        "Safety: High contrast for alerts, calm for workflows"
+      ]
+    },
+    "typography": {
+      "font_family": {
+        "headings": "Chivo, sans-serif",
+        "body": "Inter, sans-serif",
+        "mono": "JetBrains Mono, monospace"
+      },
+      "weights": {
+        "headings": "700",
+        "body": "400",
+        "bold": "600"
+      },
+      "scale": {
+        "h1": "text-4xl md:text-5xl tracking-tight font-bold",
+        "h2": "text-3xl tracking-tight font-bold",
+        "h3": "text-2xl font-semibold",
+        "body": "text-base leading-relaxed",
+        "small": "text-sm text-muted-foreground",
+        "mono": "text-xs font-mono tracking-wide"
+      }
+    },
+    "colors": {
+      "palette": {
+        "primary": {
+          "DEFAULT": "#1A2E2E",
+          "foreground": "#FFFFFF",
+          "description": "Deep Swamp Green - Authority & Nature"
+        },
+        "secondary": {
+          "DEFAULT": "#F0F4F1",
+          "foreground": "#1A2E2E",
+          "description": "Pale Sage - Backgrounds & Panels"
+        },
+        "accent": {
+          "DEFAULT": "#EAB308",
+          "foreground": "#1A2E2E",
+          "description": "Industrial Yellow - Warnings & Highlights"
+        },
+        "destructive": {
+          "DEFAULT": "#EF4444",
+          "foreground": "#FFFFFF",
+          "description": "Signal Red - Critical Alerts"
+        },
+        "success": {
+          "DEFAULT": "#22C55E",
+          "foreground": "#FFFFFF",
+          "description": "Safety Green - Compliance"
+        },
+        "background": "#F8FAF9",
+        "card": "#FFFFFF",
+        "border": "#E2E8F0"
+      },
+      "gradients": {
+        "hero": "linear-gradient(135deg, #1A2E2E 0%, #2C3E50 100%)",
+        "glass": "rgba(255, 255, 255, 0.7)"
+      }
+    },
+    "layout": {
+      "grid_system": "Bento Grid (Mode B - High Density)",
+      "spacing": {
+        "container_padding": "p-6 md:p-8",
+        "section_gap": "gap-6",
+        "component_gap": "gap-4"
+      },
+      "radius": {
+        "default": "rounded-none",
+        "card": "rounded-sm",
+        "button": "rounded-md"
+      },
+      "surface_style": "Grid Borders - 1px visible borders, minimal shadows, technical feel"
+    },
+    "components": {
+      "buttons": {
+        "primary": "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm font-medium rounded-md px-6 py-2.5 transition-all active:scale-95",
+        "secondary": "bg-secondary text-secondary-foreground hover:bg-secondary/80 font-medium rounded-md px-6 py-2.5",
+        "outline": "border-2 border-primary/20 hover:border-primary text-primary bg-transparent font-medium rounded-md px-6 py-2.5"
+      },
+      "cards": {
+        "dashboard": "bg-card border border-border/60 shadow-sm p-6 relative overflow-hidden group hover:border-primary/30 transition-colors",
+        "metric": "bg-card border border-border p-4 flex flex-col justify-between h-full"
+      },
+      "inputs": {
+        "default": "bg-background border-input focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all rounded-md"
+      },
+      "status_badges": {
+        "base": "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border",
+        "success": "bg-green-50 text-green-700 border-green-200",
+        "warning": "bg-yellow-50 text-yellow-700 border-yellow-200",
+        "critical": "bg-red-50 text-red-700 border-red-200"
+      }
+    },
+    "visual_enhancers": {
+      "textures": "Subtle noise overlay on dashboard backgrounds",
+      "icons": "Lucide React (Stroke width: 1.5px for elegance)",
+      "motion": {
+        "hover": "transition-all duration-200 ease-out",
+        "enter": "animate-in fade-in slide-in-from-bottom-4 duration-500"
+      }
+    }
+  },
+  "assets": {
+    "images": {
+      "hero_bg": "https://images.unsplash.com/photo-1767294274634-613a3545e36d?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "login_side": "https://images.unsplash.com/photo-1659353587228-5dbbebb5d98f?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "placeholder_map": "https://images.unsplash.com/photo-1721244653580-79577d2822a2?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "empty_state": "https://images.unsplash.com/photo-1592928302636-c83cf1e1c887?crop=entropy&cs=srgb&fm=jpg&q=85"
+    },
+    "icons_library": "lucide-react"
+  },
+  "implementation_guide": {
+    "tech_stack": {
+      "framework": "React (JS)",
+      "styling": "Tailwind CSS",
+      "ui_lib": "Shadcn/UI",
+      "charts": "Recharts",
+      "maps": "Custom SVG Overlay (for floor plans)"
+    },
+    "file_structure_notes": {
+      "components": "/app/frontend/src/components/ui",
+      "pages": "/app/frontend/src/pages",
+      "layouts": "/app/frontend/src/layouts"
+    },
+    "critical_rules": [
+      "DO NOT use gradients for text.",
+      "DO NOT use rounded-xl or rounded-2xl. Keep it sharp (rounded-sm or rounded-md).",
+      "Always use 'data-testid' for interactive elements.",
+      "Mobile-first: The inspection flow must work perfectly on a 375px width screen."
+    ]
+  },
+  "instructions_to_main_agent": "You are building a professional Environmental Self-Inspection System. The vibe is 'Technical Field Guide'. Use the provided colors and fonts. For the 'Interactive Map', create a component that takes an image URL (the floor plan) and allows placing absolute-positioned 'Pin' components on top of it. Use the 'Bento Grid' layout for the dashboard. Ensure all inputs and buttons are large enough for touch targets (min 44px) for the mobile inspection flow."
+}

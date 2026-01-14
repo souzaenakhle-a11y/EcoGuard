@@ -1,52 +1,135 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useEffect, useRef } from 'react';
+import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
+import axios from 'axios';
+import '@/App.css';
+import '@/index.css';
+import LoginPage from './pages/LoginPage';
+import WelcomePage from './pages/WelcomePage';
+import UploadPlantaPage from './pages/UploadPlantaPage';
+import MapearAreasPage from './pages/MapearAreasPage';
+import IniciarInspecaoPage from './pages/IniciarInspecaoPage';
+import ChecklistItemPage from './pages/ChecklistItemPage';
+import ResultadoInspecaoPage from './pages/ResultadoInspecaoPage';
+import DashboardPage from './pages/DashboardPage';
+import { Toaster } from 'sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
+function AuthCallback() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const hasProcessed = useRef(false);
 
   useEffect(() => {
-    helloWorldApi();
-  }, []);
+    if (hasProcessed.current) return;
+    hasProcessed.current = true;
+
+    const processSession = async () => {
+      const hash = location.hash;
+      if (!hash || !hash.includes('session_id=')) return;
+
+      const sessionId = hash.split('session_id=')[1].split('&')[0];
+
+      try {
+        const response = await axios.post(
+          `${API}/auth/session`,
+          { session_id: sessionId },
+          { withCredentials: true }
+        );
+
+        navigate('/dashboard', { state: { user: response.data }, replace: true });
+      } catch (error) {
+        console.error('Auth error:', error);
+        navigate('/login', { replace: true });
+      }
+    };
+
+    processSession();
+  }, [location, navigate]);
 
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+        <p className="text-muted-foreground">Autenticando...</p>
+      </div>
     </div>
   );
-};
+}
+
+function ProtectedRoute({ children }) {
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.user) {
+      setIsAuthenticated(true);
+      setUser(location.state.user);
+      return;
+    }
+
+    const checkAuth = async () => {
+      try {
+        const response = await axios.get(`${API}/auth/me`, {
+          withCredentials: true
+        });
+        setIsAuthenticated(true);
+        setUser(response.data);
+      } catch (error) {
+        setIsAuthenticated(false);
+        navigate('/login');
+      }
+    };
+
+    checkAuth();
+  }, [navigate, location.state]);
+
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return isAuthenticated ? React.cloneElement(children, { user }) : null;
+}
+
+function AppRouter() {
+  const location = useLocation();
+  
+  if (location.hash?.includes('session_id=')) {
+    return <AuthCallback />;
+  }
+
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+      <Route path="/welcome" element={<ProtectedRoute><WelcomePage /></ProtectedRoute>} />
+      <Route path="/upload-planta" element={<ProtectedRoute><UploadPlantaPage /></ProtectedRoute>} />
+      <Route path="/mapear-areas/:plantaId" element={<ProtectedRoute><MapearAreasPage /></ProtectedRoute>} />
+      <Route path="/iniciar-inspecao/:empresaId" element={<ProtectedRoute><IniciarInspecaoPage /></ProtectedRoute>} />
+      <Route path="/inspecao/:inspecaoId" element={<ProtectedRoute><ChecklistItemPage /></ProtectedRoute>} />
+      <Route path="/resultado/:inspecaoId" element={<ProtectedRoute><ResultadoInspecaoPage /></ProtectedRoute>} />
+    </Routes>
+  );
+}
 
 function App() {
   return (
     <div className="App">
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
+        <AppRouter />
       </BrowserRouter>
+      <Toaster position="top-right" richColors />
     </div>
   );
 }

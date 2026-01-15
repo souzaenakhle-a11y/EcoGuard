@@ -176,16 +176,40 @@ const MapearAreasPage = ({ user }) => {
 
   return (
     <div className="min-h-screen bg-background">
+      <div className="border-b border-border bg-white">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold">Mapear Áreas Críticas</h1>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(-1)}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Voltar
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/home')}
+                data-testid="home-button"
+              >
+                <Home className="w-4 h-4 mr-2" />
+                Home
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/home')}
-            data-testid="home-button"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Home
-          </Button>
+          <div>
+            <p className="text-muted-foreground">
+              Clique nos pontos críticos da planta para marcá-los
+            </p>
+          </div>
           <Button
             onClick={handleContinue}
             disabled={areas.length === 0}
@@ -196,8 +220,6 @@ const MapearAreasPage = ({ user }) => {
         </div>
 
         <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">Passo 2: Marque as Áreas Críticas</h1>
-          <p className="text-muted-foreground">
             Clique sobre a planta para marcar os locais que precisam de atenção ambiental. Cada marcação virará um checklist.
           </p>
         </div>

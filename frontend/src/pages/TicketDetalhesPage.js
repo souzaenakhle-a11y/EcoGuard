@@ -180,24 +180,16 @@ const TicketDetalhesPage = ({ user }) => {
   const handleDownloadRelatorio = async () => {
     setDownloadingReport(true);
     try {
-      const response = await axios.get(`${API}/tickets/${ticketId}/relatorio`, {
-        withCredentials: true,
-        responseType: 'blob'
-      });
-      
-      const blob = new Blob([response.data], { type: 'text/html' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `relatorio_ticket_${ticketId.substring(4)}.html`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
-      toast.success('Relatório baixado com sucesso!');
+      // Abrir relatório em nova aba
+      window.open(`${API}/tickets/${ticketId}/relatorio`, '_blank');
+      toast.success('Relatório aberto em nova aba!');
     } catch (error) {
       console.error('Error downloading report:', error);
+      toast.error('Erro ao baixar relatório');
+    } finally {
+      setDownloadingReport(false);
+    }
+  };
       toast.error('Erro ao baixar relatório');
     } finally {
       setDownloadingReport(false);

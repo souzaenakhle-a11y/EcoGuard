@@ -479,6 +479,55 @@ async def logout(request: Request, response: Response):
     response.delete_cookie("session_token", path="/")
     return {"message": "Logged out"}
 
+# Convites Routes (somente gestor)
+@api_router.get("/convites")
+async def get_convites(request: Request):
+    user = await get_current_user(request)
+    if not is_gestor(user):
+        raise HTTPException(status_code=403, detail="Acesso negado")
+    
+    convites = await db.codigos_convite.find({}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return convites
+
+@api_router.post("/convites")
+async def criar_convite(request: Request):
+    user = await get_current_user(request)
+    if not is_gestor(user):
+        raise HTTPException(status_code=403, detail="Acesso negado")
+    
+    body = await request.json()
+    email_destino = body.get("email_destino")
+    dias_validade = body.get("dias_validade", 30)
+    
+    # Gerar código único de 8 caracteres
+    import random
+    import string
+    codigo = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+    
+    convite = {
+        "codigo": codigo,
+        "email_destino": email_destino if email_destino else None,
+        "usado": False,
+        "usado_por": None,
+        "created_at": datetime.now(timezone.utc),
+        "expires_at": datetime.now(timezone.utc) + timedelta(days=dias_validade) if dias_validade else None
+    }
+    
+    await db.codigos_convite.insert_one(convite)
+    return {"codigo": codigo, "message": "Código criado com sucesso"}
+
+@api_router.delete("/convites/{codigo}")
+async def deletar_convite(codigo: str, request: Request):
+    user = await get_current_user(request)
+    if not is_gestor(user):
+        raise HTTPException(status_code=403, detail="Acesso negado")
+    
+    result = await db.codigos_convite.delete_one({"codigo": codigo})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Código não encontrado")
+    
+    return {"message": "Código excluído"}
+
 # Cliente Routes
 @api_router.get("/clientes", response_model=List[Cliente])
 async def get_clientes(request: Request):

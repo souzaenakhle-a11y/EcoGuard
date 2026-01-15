@@ -1648,31 +1648,22 @@ async def get_historico_alertas(request: Request, dias: int = 30):
     user = await get_current_user(request)
     
     data_inicio = datetime.now(timezone.utc) - timedelta(days=dias)
-    logger.info(f"Buscando alertas desde {data_inicio}")
     
     alertas = await db.alertas_enviados.find({}, {"_id": 0}).sort("enviado_em", -1).to_list(500)
-    logger.info(f"Encontrados {len(alertas)} alertas no banco")
     
-    # Filtrar e converter datas para serialização
-    alertas_filtrados = []
+    # Converter datas para serialização JSON
+    result = []
     for alerta in alertas:
         enviado_em = alerta.get("enviado_em")
         if enviado_em:
-            # MongoDB retorna datetime naive, assumir UTC
-            if isinstance(enviado_em, datetime) and enviado_em.tzinfo is None:
-                enviado_em = enviado_em.replace(tzinfo=timezone.utc)
-            elif isinstance(enviado_em, str):
-                enviado_em = datetime.fromisoformat(enviado_em)
+            # Converter datetime para ISO string
+            if isinstance(enviado_em, datetime):
                 if enviado_em.tzinfo is None:
                     enviado_em = enviado_em.replace(tzinfo=timezone.utc)
-            
-            logger.info(f"Alerta {alerta.get('alerta_key')}: enviado_em={enviado_em}, passa filtro={enviado_em >= data_inicio}")
-            if enviado_em >= data_inicio:
                 alerta["enviado_em"] = enviado_em.isoformat()
-                alertas_filtrados.append(alerta)
+            result.append(alerta)
     
-    logger.info(f"Retornando {len(alertas_filtrados)} alertas filtrados")
-    return alertas_filtrados
+    return result
 
 # Endpoint para configurações de alerta por licença
 @api_router.put("/licencas/{licenca_id}/alerta")

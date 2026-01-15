@@ -1454,6 +1454,182 @@ async def pode_criar_novo_ticket(empresa_id: str, request: Request):
     
     return {"pode_criar": ticket_aberto is None, "ticket_aberto": ticket_aberto}
 
+@api_router.get("/areas/{area_id}/foto-cliente")
+async def get_foto_cliente(area_id: str, request: Request):
+    """Retorna a foto enviada pelo cliente para uma área crítica"""
+    user = await get_current_user(request)
+    
+    area = await db.areas_criticas.find_one({"area_id": area_id}, {"_id": 0})
+    if not area:
+        raise HTTPException(status_code=404, detail="Área não encontrada")
+    
+    if not area.get("foto_cliente_id"):
+        raise HTTPException(status_code=404, detail="Foto não encontrada")
+    
+    from bson import ObjectId
+    try:
+        file_stream = await fs.open_download_stream(ObjectId(area["foto_cliente_id"]))
+        file_content = await file_stream.read()
+        return Response(content=file_content, media_type="image/jpeg")
+    except Exception as e:
+        raise HTTPException(status_code=404, detail="Foto não encontrada")
+
+@api_router.delete("/tickets/{ticket_id}")
+async def delete_ticket(ticket_id: str, request: Request):
+    """Exclui um ticket. Para cliente, marca como excluído. Para gestor, exclui definitivamente."""
+    user = await get_current_user(request)
+    
+    ticket = await db.tickets.find_one({"ticket_id": ticket_id}, {"_id": 0})
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket não encontrado")
+    
+    # Verificar permissão
+    if not is_gestor(user) and ticket["user_id"] != user.user_id:
+        raise HTTPException(status_code=403, detail="Sem permissão para excluir este ticket")
+    
+    if is_gestor(user):
+        # Gestor pode excluir definitivamente
+        await db.tickets.delete_one({"ticket_id": ticket_id})
+        await db.ticket_mensagens.delete_many({"ticket_id": ticket_id})
+        return {"message": "Ticket excluído definitivamente"}
+    else:
+        # Cliente apenas marca como excluído (gestor ainda vê)
+        await db.tickets.update_one(
+            {"ticket_id": ticket_id},
+            {"$set": {"deleted_by_client": True, "deleted_at": datetime.now(timezone.utc)}}
+        )
+        return {"message": "Ticket excluído"}
+
+@api_router.get("/tickets/{ticket_id}/relatorio")
+async def get_relatorio_ticket(ticket_id: str, request: Request):
+    """Gera relatório PDF do ticket finalizado"""
+    user = await get_current_user(request)
+    
+    ticket = await db.tickets.find_one({"ticket_id": ticket_id}, {"_id": 0})
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket não encontrado")
+    
+    # Verificar permissão
+    if not is_gestor(user) and ticket["user_id"] != user.user_id:
+        raise HTTPException(status_code=403, detail="Sem permissão")
+    
+    # Buscar dados completos
+    empresa = await db.empresas.find_one({"empresa_id": ticket["empresa_id"]}, {"_id": 0})
+    planta = await db.plantas_estabelecimento.find_one({"planta_id": ticket["planta_id"]}, {"_id": 0})
+    areas = await db.areas_criticas.find({"planta_id": ticket["planta_id"]}, {"_id": 0}).to_list(100)
+    mensagens = await db.ticket_mensagens.find({"ticket_id": ticket_id}, {"_id": 0}).sort("created_at", 1).to_list(1000)
+    
+    # Contabilizar análises
+    total_areas = len(areas)
+    conformes = len([a for a in areas if a.get("situacao_gestor") == "conforme"])
+    nao_conformes = len([a for a in areas if a.get("situacao_gestor") == "nao_conforme"])
+    nao_aplicaveis = len([a for a in areas if a.get("situacao_gestor") == "nao_aplicavel"])
+    
+    # Gerar HTML do relatório
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Relatório - Ticket #{ticket_id[-8:]}</title>
+        <style>
+            body {{ font-family: Arial, sans-serif; padding: 40px; color: #333; }}
+            .header {{ text-align: center; border-bottom: 2px solid #16a34a; padding-bottom: 20px; margin-bottom: 30px; }}
+            .header h1 {{ color: #16a34a; margin: 0; }}
+            .header p {{ color: #666; margin: 5px 0; }}
+            .section {{ margin-bottom: 30px; }}
+            .section h2 {{ color: #16a34a; border-bottom: 1px solid #ddd; padding-bottom: 10px; }}
+            .info-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }}
+            .info-item {{ background: #f9f9f9; padding: 10px; border-radius: 5px; }}
+            .info-item strong {{ color: #333; }}
+            .area-card {{ border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; }}
+            .area-card.conforme {{ border-left: 4px solid #16a34a; }}
+            .area-card.nao_conforme {{ border-left: 4px solid #dc2626; }}
+            .area-card.nao_aplicavel {{ border-left: 4px solid #9ca3af; }}
+            .badge {{ display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }}
+            .badge.conforme {{ background: #dcfce7; color: #16a34a; }}
+            .badge.nao_conforme {{ background: #fee2e2; color: #dc2626; }}
+            .badge.nao_aplicavel {{ background: #f3f4f6; color: #6b7280; }}
+            .summary {{ display: flex; gap: 20px; justify-content: center; margin: 20px 0; }}
+            .summary-item {{ text-align: center; padding: 15px 25px; border-radius: 8px; }}
+            .summary-item.green {{ background: #dcfce7; }}
+            .summary-item.red {{ background: #fee2e2; }}
+            .summary-item.gray {{ background: #f3f4f6; }}
+            .summary-item .number {{ font-size: 32px; font-weight: bold; }}
+            .summary-item .label {{ font-size: 12px; color: #666; }}
+            .footer {{ text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }}
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>🌿 EcoGuard</h1>
+            <p>Relatório de Auto-Fiscalização Ambiental</p>
+            <p><strong>Ticket #{ticket_id[-8:]}</strong></p>
+        </div>
+        
+        <div class="section">
+            <h2>Dados da Empresa</h2>
+            <div class="info-grid">
+                <div class="info-item"><strong>Empresa:</strong> {empresa.get('nome', 'N/A') if empresa else 'N/A'}</div>
+                <div class="info-item"><strong>CNPJ:</strong> {empresa.get('cnpj', 'N/A') if empresa else 'N/A'}</div>
+                <div class="info-item"><strong>Endereço:</strong> {empresa.get('endereco', 'N/A') if empresa else 'N/A'}</div>
+                <div class="info-item"><strong>Responsável:</strong> {empresa.get('responsavel', 'N/A') if empresa else 'N/A'}</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Resumo da Inspeção</h2>
+            <div class="summary">
+                <div class="summary-item green">
+                    <div class="number">{conformes}</div>
+                    <div class="label">CONFORMES</div>
+                </div>
+                <div class="summary-item red">
+                    <div class="number">{nao_conformes}</div>
+                    <div class="label">NÃO CONFORMES</div>
+                </div>
+                <div class="summary-item gray">
+                    <div class="number">{nao_aplicaveis}</div>
+                    <div class="label">NÃO APLICÁVEIS</div>
+                </div>
+            </div>
+            <div class="info-grid">
+                <div class="info-item"><strong>Data de Abertura:</strong> {ticket.get('created_at', 'N/A')[:10] if ticket.get('created_at') else 'N/A'}</div>
+                <div class="info-item"><strong>Data de Conclusão:</strong> {ticket.get('closed_at', 'N/A')[:10] if ticket.get('closed_at') else 'N/A'}</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Análise por Área ({total_areas} áreas)</h2>
+            {''.join([f'''
+            <div class="area-card {a.get('situacao_gestor', 'pendente')}">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <strong>{a.get('nome', 'Área')}</strong>
+                    <span class="badge {a.get('situacao_gestor', 'pendente')}">
+                        {'✓ Conforme' if a.get('situacao_gestor') == 'conforme' else '✗ Não Conforme' if a.get('situacao_gestor') == 'nao_conforme' else '— Não Aplicável' if a.get('situacao_gestor') == 'nao_aplicavel' else 'Pendente'}
+                    </span>
+                </div>
+                <p style="margin: 10px 0 5px;"><strong>Tipo:</strong> {a.get('tipo_area', 'N/A')}</p>
+                <p style="margin: 5px 0;"><strong>Criticidade:</strong> {a.get('criticidade', 'N/A').upper()}</p>
+                {f'<p style="margin: 5px 0;"><strong>Observação:</strong> {a.get("observacao_gestor")}</p>' if a.get('observacao_gestor') else ''}
+            </div>
+            ''' for a in areas])}
+        </div>
+        
+        <div class="footer">
+            <p>Relatório gerado automaticamente pelo sistema EcoGuard</p>
+            <p>Este documento é parte integrante do processo de auto-fiscalização ambiental</p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    return Response(
+        content=html_content.encode('utf-8'),
+        media_type="text/html",
+        headers={"Content-Disposition": f"attachment; filename=relatorio_ticket_{ticket_id[-8:]}.html"}
+    )
+
 # ========================================
 # Sistema de Alertas Automáticos
 # ========================================

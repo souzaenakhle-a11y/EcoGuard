@@ -1642,12 +1642,23 @@ async def get_historico_alertas(request: Request, dias: int = 30):
     
     data_inicio = datetime.now(timezone.utc) - timedelta(days=dias)
     
-    alertas = await db.alertas_enviados.find(
-        {"enviado_em": {"$gte": data_inicio}},
-        {"_id": 0}
-    ).sort("enviado_em", -1).to_list(500)
+    alertas = await db.alertas_enviados.find({}, {"_id": 0}).sort("enviado_em", -1).to_list(500)
     
-    return alertas
+    # Filtrar em Python para evitar problemas de timezone
+    alertas_filtrados = []
+    for alerta in alertas:
+        enviado_em = alerta.get("enviado_em")
+        if enviado_em:
+            if isinstance(enviado_em, str):
+                enviado_em = datetime.fromisoformat(enviado_em)
+            if enviado_em.tzinfo is None:
+                enviado_em = enviado_em.replace(tzinfo=timezone.utc)
+            if enviado_em >= data_inicio:
+                # Converter para ISO string para serialização
+                alerta["enviado_em"] = enviado_em.isoformat()
+                alertas_filtrados.append(alerta)
+    
+    return alertas_filtrados
 
 # Endpoint para configurações de alerta por licença
 @api_router.put("/licencas/{licenca_id}/alerta")

@@ -1505,7 +1505,7 @@ async def delete_ticket(ticket_id: str, request: Request):
 
 @api_router.get("/tickets/{ticket_id}/relatorio")
 async def get_relatorio_ticket(ticket_id: str, request: Request):
-    """Gera relatório PDF do ticket finalizado"""
+    """Gera relatório HTML do ticket finalizado com fotos"""
     user = await get_current_user(request)
     
     ticket = await db.tickets.find_one({"ticket_id": ticket_id}, {"_id": 0})
@@ -1522,11 +1522,60 @@ async def get_relatorio_ticket(ticket_id: str, request: Request):
     areas = await db.areas_criticas.find({"planta_id": ticket["planta_id"]}, {"_id": 0}).to_list(100)
     mensagens = await db.ticket_mensagens.find({"ticket_id": ticket_id}, {"_id": 0}).sort("created_at", 1).to_list(1000)
     
+    # Carregar fotos das áreas como base64
+    import base64
+    from bson import ObjectId
+    
+    areas_com_fotos = []
+    for area in areas:
+        area_data = dict(area)
+        foto_base64 = None
+        
+        if area.get("foto_cliente_id"):
+            try:
+                file_stream = await fs.open_download_stream(ObjectId(area["foto_cliente_id"]))
+                file_content = await file_stream.read()
+                foto_base64 = base64.b64encode(file_content).decode('utf-8')
+            except Exception as e:
+                logger.error(f"Erro ao carregar foto: {e}")
+        
+        area_data["foto_base64"] = foto_base64
+        areas_com_fotos.append(area_data)
+    
     # Contabilizar análises
-    total_areas = len(areas)
-    conformes = len([a for a in areas if a.get("situacao_gestor") == "conforme"])
-    nao_conformes = len([a for a in areas if a.get("situacao_gestor") == "nao_conforme"])
-    nao_aplicaveis = len([a for a in areas if a.get("situacao_gestor") == "nao_aplicavel"])
+    total_areas = len(areas_com_fotos)
+    conformes = len([a for a in areas_com_fotos if a.get("situacao_gestor") == "conforme"])
+    nao_conformes = len([a for a in areas_com_fotos if a.get("situacao_gestor") == "nao_conforme"])
+    nao_aplicaveis = len([a for a in areas_com_fotos if a.get("situacao_gestor") == "nao_aplicavel"])
+    
+    # Gerar HTML das áreas com fotos
+    areas_html = ""
+    for a in areas_com_fotos:
+        situacao = a.get('situacao_gestor', 'pendente')
+        situacao_label = '✓ Conforme' if situacao == 'conforme' else '✗ Não Conforme' if situacao == 'nao_conforme' else '— Não Aplicável' if situacao == 'nao_aplicavel' else 'Pendente'
+        
+        foto_html = ""
+        if a.get("foto_base64"):
+            foto_html = f'<div class="foto-container"><img src="data:image/jpeg;base64,{a["foto_base64"]}" alt="Foto da área" class="area-foto" /></div>'
+        else:
+            foto_html = '<div class="foto-container no-foto">📷 Sem foto disponível</div>'
+        
+        observacao_html = f'<p class="observacao"><strong>Observação do Gestor:</strong> {a.get("observacao_gestor")}</p>' if a.get('observacao_gestor') else ''
+        
+        areas_html += f'''
+        <div class="area-card {situacao}">
+            <div class="area-header">
+                <strong>{a.get('nome', 'Área')}</strong>
+                <span class="badge {situacao}">{situacao_label}</span>
+            </div>
+            <div class="area-info">
+                <p><strong>Tipo:</strong> {a.get('tipo_area', 'N/A')}</p>
+                <p><strong>Criticidade:</strong> {a.get('criticidade', 'N/A').upper()}</p>
+            </div>
+            {foto_html}
+            {observacao_html}
+        </div>
+        '''
     
     # Gerar HTML do relatório
     html_content = f"""
@@ -1536,7 +1585,7 @@ async def get_relatorio_ticket(ticket_id: str, request: Request):
         <meta charset="UTF-8">
         <title>Relatório - Ticket #{ticket_id[-8:]}</title>
         <style>
-            body {{ font-family: Arial, sans-serif; padding: 40px; color: #333; }}
+            body {{ font-family: Arial, sans-serif; padding: 40px; color: #333; max-width: 900px; margin: 0 auto; }}
             .header {{ text-align: center; border-bottom: 2px solid #16a34a; padding-bottom: 20px; margin-bottom: 30px; }}
             .header h1 {{ color: #16a34a; margin: 0; }}
             .header p {{ color: #666; margin: 5px 0; }}
@@ -1545,22 +1594,33 @@ async def get_relatorio_ticket(ticket_id: str, request: Request):
             .info-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }}
             .info-item {{ background: #f9f9f9; padding: 10px; border-radius: 5px; }}
             .info-item strong {{ color: #333; }}
-            .area-card {{ border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; }}
+            .area-card {{ border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 20px; page-break-inside: avoid; }}
             .area-card.conforme {{ border-left: 4px solid #16a34a; }}
             .area-card.nao_conforme {{ border-left: 4px solid #dc2626; }}
             .area-card.nao_aplicavel {{ border-left: 4px solid #9ca3af; }}
+            .area-header {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }}
+            .area-info {{ margin-bottom: 10px; }}
+            .area-info p {{ margin: 3px 0; font-size: 14px; }}
             .badge {{ display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }}
             .badge.conforme {{ background: #dcfce7; color: #16a34a; }}
             .badge.nao_conforme {{ background: #fee2e2; color: #dc2626; }}
             .badge.nao_aplicavel {{ background: #f3f4f6; color: #6b7280; }}
-            .summary {{ display: flex; gap: 20px; justify-content: center; margin: 20px 0; }}
-            .summary-item {{ text-align: center; padding: 15px 25px; border-radius: 8px; }}
+            .summary {{ display: flex; gap: 20px; justify-content: center; margin: 20px 0; flex-wrap: wrap; }}
+            .summary-item {{ text-align: center; padding: 15px 25px; border-radius: 8px; min-width: 100px; }}
             .summary-item.green {{ background: #dcfce7; }}
             .summary-item.red {{ background: #fee2e2; }}
             .summary-item.gray {{ background: #f3f4f6; }}
             .summary-item .number {{ font-size: 32px; font-weight: bold; }}
             .summary-item .label {{ font-size: 12px; color: #666; }}
+            .foto-container {{ margin: 10px 0; text-align: center; }}
+            .area-foto {{ max-width: 100%; max-height: 400px; border-radius: 8px; border: 1px solid #ddd; }}
+            .no-foto {{ background: #f5f5f5; padding: 30px; border-radius: 8px; color: #999; }}
+            .observacao {{ background: #fff3cd; padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 14px; }}
             .footer {{ text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }}
+            @media print {{
+                body {{ padding: 20px; }}
+                .area-card {{ page-break-inside: avoid; }}
+            }}
         </style>
     </head>
     <body>
@@ -1604,24 +1664,13 @@ async def get_relatorio_ticket(ticket_id: str, request: Request):
         
         <div class="section">
             <h2>Análise por Área ({total_areas} áreas)</h2>
-            {''.join([f'''
-            <div class="area-card {a.get('situacao_gestor', 'pendente')}">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <strong>{a.get('nome', 'Área')}</strong>
-                    <span class="badge {a.get('situacao_gestor', 'pendente')}">
-                        {'✓ Conforme' if a.get('situacao_gestor') == 'conforme' else '✗ Não Conforme' if a.get('situacao_gestor') == 'nao_conforme' else '— Não Aplicável' if a.get('situacao_gestor') == 'nao_aplicavel' else 'Pendente'}
-                    </span>
-                </div>
-                <p style="margin: 10px 0 5px;"><strong>Tipo:</strong> {a.get('tipo_area', 'N/A')}</p>
-                <p style="margin: 5px 0;"><strong>Criticidade:</strong> {a.get('criticidade', 'N/A').upper()}</p>
-                {f'<p style="margin: 5px 0;"><strong>Observação:</strong> {a.get("observacao_gestor")}</p>' if a.get('observacao_gestor') else ''}
-            </div>
-            ''' for a in areas])}
+            {areas_html}
         </div>
         
         <div class="footer">
             <p>Relatório gerado automaticamente pelo sistema EcoGuard</p>
             <p>Este documento é parte integrante do processo de auto-fiscalização ambiental</p>
+            <p>Gerado em: {datetime.now(timezone.utc).strftime('%d/%m/%Y às %H:%M')}</p>
         </div>
     </body>
     </html>

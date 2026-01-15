@@ -371,6 +371,7 @@ def is_gestor(user: User) -> bool:
 async def create_session(request: Request, response: Response):
     body = await request.json()
     session_id = body.get("session_id")
+    codigo_convite = body.get("codigo_convite")
     
     if not session_id:
         raise HTTPException(status_code=400, detail="session_id required")
@@ -386,8 +387,43 @@ async def create_session(request: Request, response: Response):
         
         data = resp.json()
     
+    email = data["email"]
+    
+    # Verificar se é gestor (sempre pode entrar)
+    if email not in GESTORES_EMAILS:
+        # Verificar se já é usuário existente (já usou convite antes)
+        existing_user = await db.users.find_one({"email": email}, {"_id": 0})
+        
+        if not existing_user:
+            # Novo usuário - precisa de código de convite
+            if not codigo_convite:
+                raise HTTPException(status_code=403, detail="CONVITE_NECESSARIO")
+            
+            # Validar código
+            convite = await db.codigos_convite.find_one({
+                "codigo": codigo_convite.upper(),
+                "usado": False
+            }, {"_id": 0})
+            
+            if not convite:
+                raise HTTPException(status_code=403, detail="CONVITE_INVALIDO")
+            
+            # Verificar se expirou
+            if convite.get("expires_at") and convite["expires_at"] < datetime.now(timezone.utc):
+                raise HTTPException(status_code=403, detail="CONVITE_EXPIRADO")
+            
+            # Verificar se é específico para um email
+            if convite.get("email_destino") and convite["email_destino"] != email:
+                raise HTTPException(status_code=403, detail="CONVITE_OUTRO_EMAIL")
+            
+            # Marcar convite como usado
+            await db.codigos_convite.update_one(
+                {"codigo": codigo_convite.upper()},
+                {"$set": {"usado": True, "usado_por": email, "usado_em": datetime.now(timezone.utc)}}
+            )
+    
     user_id = f"user_{uuid.uuid4().hex[:12]}"
-    existing_user = await db.users.find_one({"email": data["email"]}, {"_id": 0})
+    existing_user = await db.users.find_one({"email": email}, {"_id": 0})
     
     if existing_user:
         user_id = existing_user["user_id"]
@@ -401,7 +437,7 @@ async def create_session(request: Request, response: Response):
     else:
         await db.users.insert_one({
             "user_id": user_id,
-            "email": data["email"],
+            "email": email,
             "name": data["name"],
             "picture": data.get("picture"),
             "created_at": datetime.now(timezone.utc)

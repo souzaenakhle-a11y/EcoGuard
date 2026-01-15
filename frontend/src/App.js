@@ -110,6 +110,12 @@ function ProtectedRoute({ children }) {
   return isAuthenticated ? React.cloneElement(children, { user }) : null;
 }
 
+// Wrapper para detectar gestor e renderizar página correta
+function HomeWrapper({ user }) {
+  const isGestor = user?.email === 'souzaenakhle@gmail.com';
+  return isGestor ? <AdminHomePage user={user} /> : <HomePage user={user} />;
+}
+
 function AppRouter() {
   const location = useLocation();
   

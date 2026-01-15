@@ -190,11 +190,6 @@ const TicketDetalhesPage = ({ user }) => {
       setDownloadingReport(false);
     }
   };
-      toast.error('Erro ao baixar relatório');
-    } finally {
-      setDownloadingReport(false);
-    }
-  };
 
   const viewFotoCliente = (areaId) => {
     window.open(`${API}/areas/${areaId}/foto-cliente`, '_blank');

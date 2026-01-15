@@ -224,7 +224,7 @@ const CondicionantesPage = ({ user }) => {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="font-semibold text-lg">{cond.nome}</h3>
-                        {getStatusBadge(cond.status)}
+                        {getStatusBadge(cond)}
                       </div>
                       <p className="text-sm text-muted-foreground mb-2">Licença: {getLicencaNome(cond.licenca_id)}</p>
                       <p className="text-sm mb-2">{cond.descricao}</p>

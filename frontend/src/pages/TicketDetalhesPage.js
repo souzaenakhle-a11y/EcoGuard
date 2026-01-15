@@ -186,7 +186,7 @@ const TicketDetalhesPage = ({ user }) => {
         <div className="grid gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Status: {ticket.etapa?.replace(/_/g, ' ').toUpperCase()}</CardTitle>
+              <CardTitle>Status: {(ticket.etapa || ticket.status || 'pendente')?.replace(/_/g, ' ').toUpperCase()}</CardTitle>
             </CardHeader>
             <CardContent>
               {isGestor && ticket.etapa === 'mapeamento_gestor' && (

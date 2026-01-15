@@ -1647,24 +1647,15 @@ async def get_historico_alertas(request: Request, dias: int = 30):
     """Retorna histórico de alertas enviados"""
     user = await get_current_user(request)
     
-    alertas = await db.alertas_enviados.find({}, {"_id": 0}).sort("enviado_em", -1).to_list(500)
-    logger.info(f"DEBUG: Encontrados {len(alertas)} alertas")
+    alertas_cursor = db.alertas_enviados.find({}, {"_id": 0}).sort("enviado_em", -1)
+    alertas = await alertas_cursor.to_list(500)
     
     # Converter datas para serialização JSON
-    result = []
     for alerta in alertas:
-        enviado_em = alerta.get("enviado_em")
-        logger.info(f"DEBUG: Alerta enviado_em = {enviado_em}, type = {type(enviado_em)}")
-        if enviado_em:
-            # Converter datetime para ISO string
-            if isinstance(enviado_em, datetime):
-                if enviado_em.tzinfo is None:
-                    enviado_em = enviado_em.replace(tzinfo=timezone.utc)
-                alerta["enviado_em"] = enviado_em.isoformat()
-            result.append(alerta)
+        if "enviado_em" in alerta and isinstance(alerta["enviado_em"], datetime):
+            alerta["enviado_em"] = alerta["enviado_em"].isoformat()
     
-    logger.info(f"DEBUG: Retornando {len(result)} alertas")
-    return result
+    return alertas
 
 # Endpoint para configurações de alerta por licença
 @api_router.put("/licencas/{licenca_id}/alerta")

@@ -219,11 +219,6 @@ const MapearAreasPage = ({ user }) => {
           </Button>
         </div>
 
-        <div className="mb-6">
-            Clique sobre a planta para marcar os locais que precisam de atenção ambiental. Cada marcação virará um checklist.
-          </p>
-        </div>
-
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <Card className="p-6">

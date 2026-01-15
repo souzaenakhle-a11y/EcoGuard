@@ -1447,6 +1447,224 @@ async def pode_criar_novo_ticket(empresa_id: str, request: Request):
     
     return {"pode_criar": ticket_aberto is None, "ticket_aberto": ticket_aberto}
 
+# ========================================
+# Sistema de Alertas Automáticos
+# ========================================
+
+async def verificar_licencas_vencendo():
+    """Verifica licenças próximas do vencimento e envia alertas por email"""
+    try:
+        logger.info("🔔 Iniciando verificação de licenças...")
+        
+        # Buscar todas as licenças
+        licencas = await db.licencas_documentos.find({}, {"_id": 0}).to_list(1000)
+        alertas_enviados = 0
+        
+        for licenca in licencas:
+            data_validade = licenca.get("data_validade")
+            if not data_validade:
+                continue
+                
+            if isinstance(data_validade, str):
+                data_validade = datetime.fromisoformat(data_validade)
+            if data_validade.tzinfo is None:
+                data_validade = data_validade.replace(tzinfo=timezone.utc)
+            
+            dias_restantes = (data_validade - datetime.now(timezone.utc)).days
+            dias_alerta = licenca.get("dias_alerta_vencimento", 30)
+            
+            # Verificar se já enviamos alerta hoje para esta licença
+            alerta_key = f"{licenca['licenca_id']}_{datetime.now(timezone.utc).date()}"
+            alerta_existente = await db.alertas_enviados.find_one({"alerta_key": alerta_key})
+            
+            if alerta_existente:
+                continue  # Já enviamos alerta hoje
+            
+            # Determinar se precisa enviar alerta
+            deve_alertar = False
+            tipo_alerta = ""
+            
+            if dias_restantes < 0:
+                deve_alertar = True
+                tipo_alerta = "VENCIDA"
+            elif dias_restantes <= 7:
+                deve_alertar = True
+                tipo_alerta = "CRÍTICO"
+            elif dias_restantes <= dias_alerta:
+                deve_alertar = True
+                tipo_alerta = "ATENÇÃO"
+            
+            if deve_alertar:
+                # Buscar empresa para obter dados de contato
+                empresa = await db.empresas.find_one(
+                    {"empresa_id": licenca["empresa_id"]}, 
+                    {"_id": 0}
+                )
+                
+                # Buscar usuário dono da empresa
+                if empresa:
+                    user = await db.users.find_one(
+                        {"user_id": empresa.get("user_id")},
+                        {"_id": 0}
+                    )
+                    
+                    if user and user.get("email"):
+                        # Montar mensagem de alerta
+                        if dias_restantes < 0:
+                            mensagem = f"""
+                            <strong style="color: #dc2626;">⚠️ LICENÇA VENCIDA!</strong><br><br>
+                            A licença <strong>{licenca['nome_licenca']}</strong> ({licenca['numero_licenca']}) 
+                            da empresa <strong>{empresa['nome']}</strong> está <strong>VENCIDA há {abs(dias_restantes)} dias</strong>.<br><br>
+                            <strong>Tipo:</strong> {licenca['tipo']}<br>
+                            <strong>Órgão Emissor:</strong> {licenca['orgao_emissor']}<br>
+                            <strong>Vencimento:</strong> {data_validade.strftime('%d/%m/%Y')}<br><br>
+                            Providencie a renovação imediatamente para evitar multas e sanções.
+                            """
+                        else:
+                            mensagem = f"""
+                            A licença <strong>{licenca['nome_licenca']}</strong> ({licenca['numero_licenca']}) 
+                            da empresa <strong>{empresa['nome']}</strong> vencerá em <strong>{dias_restantes} dias</strong>.<br><br>
+                            <strong>Tipo:</strong> {licenca['tipo']}<br>
+                            <strong>Órgão Emissor:</strong> {licenca['orgao_emissor']}<br>
+                            <strong>Vencimento:</strong> {data_validade.strftime('%d/%m/%Y')}<br><br>
+                            Providencie a renovação com antecedência para evitar problemas.
+                            """
+                        
+                        assunto = f"[{tipo_alerta}] Licença {licenca['nome_licenca']} - {dias_restantes} dias para vencer" if dias_restantes >= 0 else f"[VENCIDA] Licença {licenca['nome_licenca']} - AÇÃO URGENTE"
+                        
+                        # Enviar email
+                        await enviar_email_notificacao(user["email"], assunto, mensagem)
+                        
+                        # Também notificar gestor
+                        await enviar_email_notificacao(GESTORES_EMAILS[0], assunto, mensagem)
+                        
+                        # Registrar que enviamos o alerta
+                        await db.alertas_enviados.insert_one({
+                            "alerta_key": alerta_key,
+                            "licenca_id": licenca["licenca_id"],
+                            "tipo_alerta": tipo_alerta,
+                            "dias_restantes": dias_restantes,
+                            "enviado_em": datetime.now(timezone.utc)
+                        })
+                        
+                        alertas_enviados += 1
+                        logger.info(f"📧 Alerta enviado: {licenca['nome_licenca']} ({tipo_alerta})")
+        
+        # Verificar condicionantes também
+        condicionantes = await db.condicionantes.find({}, {"_id": 0}).to_list(1000)
+        
+        for cond in condicionantes:
+            data_acompanhamento = cond.get("data_acompanhamento")
+            if not data_acompanhamento:
+                continue
+                
+            if isinstance(data_acompanhamento, str):
+                data_acompanhamento = datetime.fromisoformat(data_acompanhamento)
+            if data_acompanhamento.tzinfo is None:
+                data_acompanhamento = data_acompanhamento.replace(tzinfo=timezone.utc)
+            
+            dias_restantes = (data_acompanhamento - datetime.now(timezone.utc)).days
+            
+            # Verificar se já enviamos alerta hoje
+            alerta_key = f"cond_{cond['condicionante_id']}_{datetime.now(timezone.utc).date()}"
+            alerta_existente = await db.alertas_enviados.find_one({"alerta_key": alerta_key})
+            
+            if alerta_existente:
+                continue
+            
+            if dias_restantes <= 7 and dias_restantes >= 0:
+                # Buscar licença associada
+                licenca = await db.licencas_documentos.find_one(
+                    {"licenca_id": cond["licenca_id"]},
+                    {"_id": 0}
+                )
+                
+                if licenca and cond.get("responsavel_email"):
+                    mensagem = f"""
+                    A condicionante <strong>{cond['nome']}</strong> da licença <strong>{licenca['nome_licenca']}</strong> 
+                    tem prazo de acompanhamento em <strong>{dias_restantes} dias</strong>.<br><br>
+                    <strong>Descrição:</strong> {cond['descricao']}<br>
+                    <strong>Data:</strong> {data_acompanhamento.strftime('%d/%m/%Y')}<br>
+                    <strong>Responsável:</strong> {cond['responsavel_nome']}<br><br>
+                    Verifique o cumprimento desta condicionante.
+                    """
+                    
+                    assunto = f"[CONDICIONANTE] {cond['nome']} - Prazo em {dias_restantes} dias"
+                    
+                    await enviar_email_notificacao(cond["responsavel_email"], assunto, mensagem)
+                    await enviar_email_notificacao(GESTORES_EMAILS[0], assunto, mensagem)
+                    
+                    await db.alertas_enviados.insert_one({
+                        "alerta_key": alerta_key,
+                        "condicionante_id": cond["condicionante_id"],
+                        "tipo_alerta": "CONDICIONANTE",
+                        "dias_restantes": dias_restantes,
+                        "enviado_em": datetime.now(timezone.utc)
+                    })
+                    
+                    alertas_enviados += 1
+        
+        logger.info(f"✅ Verificação concluída. {alertas_enviados} alertas enviados.")
+        return alertas_enviados
+        
+    except Exception as e:
+        logger.error(f"Erro na verificação de licenças: {e}")
+        return 0
+
+async def scheduler_alertas():
+    """Scheduler que roda a cada hora verificando alertas"""
+    while True:
+        try:
+            await verificar_licencas_vencendo()
+        except Exception as e:
+            logger.error(f"Erro no scheduler de alertas: {e}")
+        
+        # Aguardar 1 hora antes da próxima verificação
+        await asyncio.sleep(3600)
+
+# Endpoint manual para disparar verificação
+@api_router.post("/alertas/verificar")
+async def verificar_alertas_manual(request: Request):
+    """Dispara verificação manual de alertas (apenas gestor)"""
+    user = await get_current_user(request)
+    
+    if not is_gestor(user):
+        raise HTTPException(status_code=403, detail="Apenas gestores podem disparar verificação")
+    
+    alertas_enviados = await verificar_licencas_vencendo()
+    return {"message": f"Verificação concluída. {alertas_enviados} alertas enviados."}
+
+# Endpoint para listar alertas enviados
+@api_router.get("/alertas/historico")
+async def get_historico_alertas(request: Request, dias: int = 30):
+    """Retorna histórico de alertas enviados"""
+    user = await get_current_user(request)
+    
+    data_inicio = datetime.now(timezone.utc) - timedelta(days=dias)
+    
+    alertas = await db.alertas_enviados.find(
+        {"enviado_em": {"$gte": data_inicio}},
+        {"_id": 0}
+    ).sort("enviado_em", -1).to_list(500)
+    
+    return alertas
+
+# Endpoint para configurações de alerta por licença
+@api_router.put("/licencas/{licenca_id}/alerta")
+async def update_alerta_config(licenca_id: str, dias_alerta: int, request: Request):
+    """Atualiza dias de antecedência para alerta de vencimento"""
+    user = await get_current_user(request)
+    
+    if dias_alerta < 1 or dias_alerta > 180:
+        raise HTTPException(status_code=400, detail="Dias de alerta deve ser entre 1 e 180")
+    
+    await db.licencas_documentos.update_one(
+        {"licenca_id": licenca_id},
+        {"$set": {"dias_alerta_vencimento": dias_alerta}}
+    )
+    
+    return {"message": f"Alerta configurado para {dias_alerta} dias antes do vencimento"}
+
 app.include_router(api_router)
 
 app.add_middleware(

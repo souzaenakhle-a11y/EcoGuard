@@ -5,6 +5,7 @@ import '@/App.css';
 import '@/index.css';
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
+import AdminHomePage from './pages/AdminHomePage';
 import WelcomePage from './pages/WelcomePage';
 import UploadPlantaPage from './pages/UploadPlantaPage';
 import MapearAreasPage from './pages/MapearAreasPage';

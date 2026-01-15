@@ -8,11 +8,16 @@ import {
   Calendar, TrendingUp, Users, Building, Shield, Home as HomeIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
+import AdminHomePage from './AdminHomePage';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const HomePage = ({ user }) => {
+  // Se o usuário é o gestor, renderizar a página de administração
+  if (user?.email === 'souzaenakhle@gmail.com') {
+    return <AdminHomePage user={user} />;
+  }
   const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalEmpresas: 0,

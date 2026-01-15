@@ -1249,11 +1249,14 @@ async def get_tickets(request: Request):
     user = await get_current_user(request)
     
     if is_gestor(user):
-        # Gestor vê todos os tickets
+        # Gestor vê todos os tickets (incluindo excluídos pelo cliente)
         tickets = await db.tickets.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
     else:
-        # Cliente vê apenas seus tickets
-        tickets = await db.tickets.find({"user_id": user.user_id}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+        # Cliente vê apenas seus tickets que não foram excluídos
+        tickets = await db.tickets.find({
+            "user_id": user.user_id,
+            "$or": [{"deleted_by_client": {"$exists": False}}, {"deleted_by_client": False}]
+        }, {"_id": 0}).sort("created_at", -1).to_list(1000)
     
     # Enriquecer com dados da empresa e planta
     for ticket in tickets:

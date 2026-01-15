@@ -273,15 +273,41 @@ class LicencaDocumentoUpdate(BaseModel):
 
 # Auth Helper
 GESTORES_EMAILS = ["souzaenakhle@gmail.com"]
+SENDER_EMAIL = "EcoGuard <onboarding@resend.dev>"
 
-def enviar_email_notificacao(destinatario_email: str, assunto: str, mensagem: str):
-    """Simula envio de email (em produção usar SMTP real)"""
+# Configure Resend
+resend.api_key = os.environ.get('RESEND_API_KEY')
+
+async def enviar_email_notificacao(destinatario_email: str, assunto: str, mensagem: str):
+    """Envia email de notificação usando Resend"""
     try:
-        logger.info(f"📧 EMAIL ENVIADO:")
-        logger.info(f"   Para: {destinatario_email}")
-        logger.info(f"   Assunto: {assunto}")
-        logger.info(f"   Mensagem: {mensagem}")
-        logger.info("=" * 50)
+        if not resend.api_key:
+            logger.warning("RESEND_API_KEY não configurada. Email não enviado.")
+            return
+        
+        html_content = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <h2 style="color: #16a34a; margin-bottom: 20px;">🌿 EcoGuard - Sistema de Auto-Fiscalização</h2>
+                <p style="font-size: 16px; color: #333; line-height: 1.6;">{mensagem}</p>
+                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                <p style="font-size: 12px; color: #666;">Este é um email automático. Não responda diretamente.</p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        params = {
+            "from": SENDER_EMAIL,
+            "to": [destinatario_email],
+            "subject": assunto,
+            "html": html_content
+        }
+        
+        email = await asyncio.to_thread(resend.Emails.send, params)
+        logger.info(f"📧 Email enviado para {destinatario_email}: {assunto}")
+        return email
     except Exception as e:
         logger.error(f"Erro ao enviar email: {e}")
 

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Home, AlertTriangle, CheckCircle, Clock, Bell, RefreshCw } from 'lucide-react';
+import { Home, AlertTriangle, CheckCircle, Clock, Bell, RefreshCw, ArrowLeft } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 import { format } from 'date-fns';

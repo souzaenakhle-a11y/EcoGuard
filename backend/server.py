@@ -1647,14 +1647,14 @@ async def get_historico_alertas(request: Request, dias: int = 30):
     """Retorna histórico de alertas enviados"""
     user = await get_current_user(request)
     
-    data_inicio = datetime.now(timezone.utc) - timedelta(days=dias)
-    
     alertas = await db.alertas_enviados.find({}, {"_id": 0}).sort("enviado_em", -1).to_list(500)
+    print(f"DEBUG: Encontrados {len(alertas)} alertas")  # Debug
     
     # Converter datas para serialização JSON
     result = []
     for alerta in alertas:
         enviado_em = alerta.get("enviado_em")
+        print(f"DEBUG: Alerta enviado_em = {enviado_em}, type = {type(enviado_em)}")  # Debug
         if enviado_em:
             # Converter datetime para ISO string
             if isinstance(enviado_em, datetime):
@@ -1663,6 +1663,7 @@ async def get_historico_alertas(request: Request, dias: int = 30):
                 alerta["enviado_em"] = enviado_em.isoformat()
             result.append(alerta)
     
+    print(f"DEBUG: Retornando {len(result)} alertas")  # Debug
     return result
 
 # Endpoint para configurações de alerta por licença

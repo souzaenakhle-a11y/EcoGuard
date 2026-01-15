@@ -144,7 +144,18 @@ const CondicionantesPage = ({ user }) => {
     });
   };
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (cond) => {
+    // Verificar automaticamente se está atrasada
+    let status = cond.status;
+    if (cond.data_acompanhamento && cond.status !== 'concluida') {
+      const dataAcomp = new Date(cond.data_acompanhamento);
+      const hoje = new Date();
+      hoje.setHours(0,0,0,0);
+      if (dataAcomp < hoje) {
+        status = 'atrasada';
+      }
+    }
+    
     const config = {
       'em_andamento': { label: 'Em Andamento', color: 'bg-blue-100 text-blue-700' },
       'concluida': { label: 'Concluída', color: 'bg-green-100 text-green-700' },

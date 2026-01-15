@@ -116,8 +116,7 @@ const CondicionantesPage = ({ user }) => {
       descricao: '',
       status: 'em_andamento',
       percentual_conclusao: 0,
-      observacoes: '',
-      nova_data_acompanhamento: ''
+      observacoes: ''
     });
   };
 

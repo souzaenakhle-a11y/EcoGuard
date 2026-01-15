@@ -205,6 +205,71 @@ const LicencasIndicadoresPage = ({ user }) => {
             )}
           </CardContent>
         </Card>
+
+        {/* Seção de Alertas Automáticos */}
+        <Card className="mt-6">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="w-5 h-5" />
+                Alertas Automáticos por Email
+              </CardTitle>
+              {isGestor && (
+                <Button 
+                  onClick={handleVerificarAlertas} 
+                  disabled={verificando}
+                  size="sm"
+                  data-testid="verificar-alertas-btn"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${verificando ? 'animate-spin' : ''}`} />
+                  {verificando ? 'Verificando...' : 'Verificar Agora'}
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-primary/5 p-4 rounded-md mb-4">
+              <p className="text-sm">
+                <strong>🔔 Sistema de Alertas Ativo</strong><br />
+                O sistema verifica automaticamente a cada hora e envia emails quando:
+              </p>
+              <ul className="text-sm mt-2 space-y-1 ml-4 list-disc">
+                <li>Licenças estão próximas do vencimento (conforme configuração)</li>
+                <li>Licenças estão a 7 dias do vencimento (alerta crítico)</li>
+                <li>Licenças estão vencidas (alerta urgente)</li>
+                <li>Condicionantes estão próximas do prazo de acompanhamento</li>
+              </ul>
+            </div>
+            
+            <h4 className="font-medium mb-3">Histórico de Alertas (últimos 30 dias)</h4>
+            {alertasHistorico.length === 0 ? (
+              <p className="text-center text-muted-foreground py-4">Nenhum alerta enviado nos últimos 30 dias</p>
+            ) : (
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {alertasHistorico.map((alerta, index) => (
+                  <div key={index} className="p-3 border rounded-md flex justify-between items-center text-sm">
+                    <div>
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium mr-2 ${
+                        alerta.tipo_alerta === 'VENCIDA' ? 'bg-destructive/10 text-destructive' :
+                        alerta.tipo_alerta === 'CRÍTICO' ? 'bg-orange-100 text-orange-600' :
+                        alerta.tipo_alerta === 'CONDICIONANTE' ? 'bg-purple-100 text-purple-600' :
+                        'bg-yellow-100 text-yellow-600'
+                      }`}>
+                        {alerta.tipo_alerta}
+                      </span>
+                      <span className="text-muted-foreground">
+                        {alerta.dias_restantes >= 0 ? `${alerta.dias_restantes} dias restantes` : `Vencida há ${Math.abs(alerta.dias_restantes)} dias`}
+                      </span>
+                    </div>
+                    <span className="text-muted-foreground">
+                      {format(new Date(alerta.enviado_em), "dd/MM HH:mm", { locale: ptBR })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

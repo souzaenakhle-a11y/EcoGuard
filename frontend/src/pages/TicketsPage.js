@@ -4,7 +4,7 @@ import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Home, Eye, Clock, CheckCircle, XCircle, AlertTriangle, FileText } from 'lucide-react';
+import { Home, Eye, Clock, CheckCircle, XCircle, AlertTriangle, FileText, Trash2, Camera, ClipboardCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -16,6 +16,9 @@ const TicketsPage = ({ user }) => {
   const navigate = useNavigate();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(null);
+
+  const isGestor = user?.email === 'souzaenakhle@gmail.com';
 
   useEffect(() => {
     fetchTickets();
@@ -33,15 +36,36 @@ const TicketsPage = ({ user }) => {
     }
   };
 
-  const getStatusBadge = (status) => {
-    const statusConfig = {
-      'aberto': { label: 'Aberto', icon: Clock, color: 'bg-blue-100 text-blue-600' },
-      'aguardando_cliente': { label: 'Aguardando Cliente', icon: AlertTriangle, color: 'bg-yellow-100 text-yellow-600' },
-      'em_analise': { label: 'Em Análise', icon: Eye, color: 'bg-purple-100 text-purple-600' },
-      'fechado': { label: 'Fechado', icon: CheckCircle, color: 'bg-green-100 text-green-600' }
+  const handleDeleteTicket = async (e, ticketId) => {
+    e.stopPropagation(); // Prevent card click
+    
+    if (!window.confirm('Tem certeza que deseja excluir este ticket?')) {
+      return;
+    }
+    
+    setDeleting(ticketId);
+    try {
+      await axios.delete(`${API}/tickets/${ticketId}`, { withCredentials: true });
+      toast.success('Ticket excluído com sucesso!');
+      fetchTickets();
+    } catch (error) {
+      console.error('Error deleting ticket:', error);
+      toast.error('Erro ao excluir ticket');
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  const getEtapaBadge = (etapa, status) => {
+    // Mapear baseado na etapa, não no status
+    const etapaConfig = {
+      'mapeamento_gestor': { label: 'Aguardando Mapeamento', icon: Clock, color: 'bg-blue-100 text-blue-600' },
+      'upload_fotos_cliente': { label: 'Aguardando Fotos', icon: Camera, color: 'bg-yellow-100 text-yellow-600' },
+      'analise_gestor': { label: 'Em Análise', icon: Eye, color: 'bg-purple-100 text-purple-600' },
+      'finalizado': { label: 'Concluído', icon: CheckCircle, color: 'bg-green-100 text-green-600' }
     };
 
-    const config = statusConfig[status] || statusConfig['aberto'];
+    const config = etapaConfig[etapa] || etapaConfig['mapeamento_gestor'];
     const Icon = config.icon;
 
     return (
@@ -65,7 +89,9 @@ const TicketsPage = ({ user }) => {
       <div className="border-b border-border bg-white">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">Meus Tickets de Auto-Fiscalização</h1>
+            <h1 className="text-2xl font-bold">
+              {isGestor ? 'Todos os Tickets' : 'Meus Tickets de Auto-Fiscalização'}
+            </h1>
             <Button variant="ghost" size="sm" onClick={() => navigate('/home')}>
               <Home className="w-4 h-4 mr-2" />
               Home
@@ -91,24 +117,46 @@ const TicketsPage = ({ user }) => {
         ) : (
           <div className="grid gap-4">
             {tickets.map((ticket) => (
-              <Card key={ticket.ticket_id} className="hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate(`/tickets/${ticket.ticket_id}`)}>
+              <Card 
+                key={ticket.ticket_id} 
+                className={`hover:border-primary/30 transition-colors cursor-pointer ${ticket.deleted_by_client ? 'opacity-60 border-red-200' : ''}`}
+                onClick={() => navigate(`/tickets/${ticket.ticket_id}`)}
+              >
                 <CardContent className="pt-6">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
+                      <div className="flex items-center gap-3 mb-2 flex-wrap">
                         <h3 className="text-lg font-semibold">Ticket #{ticket.ticket_id.substring(4)}</h3>
-                        {getStatusBadge(ticket.status)}
+                        {getEtapaBadge(ticket.etapa, ticket.status)}
+                        {ticket.deleted_by_client && (
+                          <Badge className="bg-red-100 text-red-600 gap-1">
+                            <Trash2 className="w-3 h-3" />
+                            Excluído pelo Cliente
+                          </Badge>
+                        )}
                       </div>
                       <div className="space-y-1 text-sm text-muted-foreground mb-3">
-                        <p><span className="font-medium">Empresa:</span> {ticket.empresa?.nome}</p>
-                        <p><span className="font-medium">Planta:</span> {ticket.planta?.nome}</p>
+                        <p><span className="font-medium">Empresa:</span> {ticket.empresa?.nome || 'N/A'}</p>
+                        <p><span className="font-medium">Planta:</span> {ticket.planta?.nome || 'N/A'}</p>
+                        <p><span className="font-medium">Cliente:</span> {ticket.user_email}</p>
                         <p><span className="font-medium">Criado em:</span> {format(new Date(ticket.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm">
-                      <Eye className="w-4 h-4 mr-2" />
-                      Ver Detalhes
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={(e) => handleDeleteTicket(e, ticket.ticket_id)}
+                        disabled={deleting === ticket.ticket_id}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Eye className="w-4 h-4 mr-2" />
+                        Ver Detalhes
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

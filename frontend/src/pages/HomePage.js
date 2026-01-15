@@ -145,7 +145,7 @@ const HomePage = ({ user }) => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid md:grid-cols-4 gap-4 mb-12">
+        <div className="grid md:grid-cols-5 gap-4 mb-12">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -186,10 +186,22 @@ const HomePage = ({ user }) => {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">A Vencer</p>
+                  <p className="text-sm text-muted-foreground">Licenças a Vencer</p>
                   <p className="text-3xl font-bold text-destructive">{stats.licencasAVencer}</p>
                 </div>
                 <AlertTriangle className="w-8 h-8 text-destructive" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Condicionantes a Vencer</p>
+                  <p className="text-3xl font-bold text-yellow-600">{stats.condicionantesAVencer}</p>
+                </div>
+                <Calendar className="w-8 h-8 text-yellow-600" />
               </div>
             </CardContent>
           </Card>

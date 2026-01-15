@@ -134,10 +134,16 @@ const LicencasCadastroPage = ({ user }) => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">{editId ? 'Editar' : 'Cadastrar'} Licença</h1>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/home')}>
-              <Home className="w-4 h-4 mr-2" />
-              Home
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm" onClick={() => navigate('/licencas')}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Voltar
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/home')}>
+                <Home className="w-4 h-4 mr-2" />
+                Home
+              </Button>
+            </div>
           </div>
         </div>
       </div>

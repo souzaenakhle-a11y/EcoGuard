@@ -93,11 +93,19 @@ const HomePage = ({ user }) => {
     },
     {
       title: 'Gestão de Licenças',
-      description: 'Gerencie licenças ambientais e condicionantes',
+      description: 'Gerencie licenças ambientais',
       icon: Shield,
       color: 'bg-primary/10 text-primary',
       route: '/licencas',
       testId: 'module-licencas'
+    },
+    {
+      title: 'Condicionantes',
+      description: 'Gerencie condicionantes das licenças',
+      icon: Calendar,
+      color: 'bg-yellow-100 text-yellow-600',
+      route: '/condicionantes',
+      testId: 'module-condicionantes'
     },
     {
       title: 'Indicadores',

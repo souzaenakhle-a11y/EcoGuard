@@ -36,10 +36,6 @@ const AdminHomePage = ({ user }) => {
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAllData();
-  }, []);
-
   const fetchAllData = async () => {
     try {
       const [empresasRes, licencasRes, condicionantesRes, ticketsRes] = await Promise.all([
@@ -87,6 +83,10 @@ const AdminHomePage = ({ user }) => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchAllData();
+  }, []);
 
   const handleDeleteLicenca = async (licencaId) => {
     if (!window.confirm('Excluir esta licença? Esta ação não pode ser desfeita.')) return;

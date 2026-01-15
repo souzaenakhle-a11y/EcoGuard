@@ -1644,17 +1644,20 @@ async def get_historico_alertas(request: Request, dias: int = 30):
     
     alertas = await db.alertas_enviados.find({}, {"_id": 0}).sort("enviado_em", -1).to_list(500)
     
-    # Filtrar em Python para evitar problemas de timezone
+    # Filtrar e converter datas para serialização
     alertas_filtrados = []
     for alerta in alertas:
         enviado_em = alerta.get("enviado_em")
         if enviado_em:
-            if isinstance(enviado_em, str):
-                enviado_em = datetime.fromisoformat(enviado_em)
-            if enviado_em.tzinfo is None:
+            # MongoDB retorna datetime naive, assumir UTC
+            if isinstance(enviado_em, datetime) and enviado_em.tzinfo is None:
                 enviado_em = enviado_em.replace(tzinfo=timezone.utc)
+            elif isinstance(enviado_em, str):
+                enviado_em = datetime.fromisoformat(enviado_em)
+                if enviado_em.tzinfo is None:
+                    enviado_em = enviado_em.replace(tzinfo=timezone.utc)
+            
             if enviado_em >= data_inicio:
-                # Converter para ISO string para serialização
                 alerta["enviado_em"] = enviado_em.isoformat()
                 alertas_filtrados.append(alerta)
     

@@ -117,14 +117,11 @@ function AppRouter() {
     return <AuthCallback />;
   }
 
-  // Detectar se é gestor
-  const isGestor = user?.email === 'souzaenakhle@gmail.com';
-
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/" element={<Navigate to="/home" replace />} />
-      <Route path="/home" element={<ProtectedRoute>{isGestor ? <AdminHomePage /> : <HomePage />}</ProtectedRoute>} />
+      <Route path="/home" element={<ProtectedRoute><HomeWrapper /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/welcome" element={<ProtectedRoute><WelcomePage /></ProtectedRoute>} />
       <Route path="/upload-planta" element={<ProtectedRoute><UploadPlantaPage /></ProtectedRoute>} />

@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Home, Send, Camera, CheckCircle, XCircle, Minus } from 'lucide-react';
+import { ArrowLeft, Home, Send, Camera, CheckCircle, XCircle, Minus, Download, Image, FileText, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -26,6 +26,8 @@ const TicketDetalhesPage = ({ user }) => {
   const [isGestor, setIsGestor] = useState(false);
   const [fotosPorArea, setFotosPorArea] = useState({});
   const [analisesPorArea, setAnalisesPorArea] = useState({});
+  const [fotosPreview, setFotosPreview] = useState({});
+  const [downloadingReport, setDownloadingReport] = useState(false);
   const fileInputRefs = useRef({});
 
   useEffect(() => {
@@ -104,6 +106,8 @@ const TicketDetalhesPage = ({ user }) => {
       });
       toast.success('Foto enviada!');
       setFotosPorArea({...fotosPorArea, [areaId]: null});
+      setFotosPreview({...fotosPreview, [areaId]: null});
+      fetchTicket();
     } catch (error) {
       console.error('Error uploading foto:', error);
       toast.error('Erro ao enviar foto');
@@ -160,6 +164,50 @@ const TicketDetalhesPage = ({ user }) => {
     toast.success('Ticket finalizado! Relatório disponível.');
   };
 
+  const handleFileChange = (areaId, file) => {
+    setFotosPorArea({...fotosPorArea, [areaId]: file});
+    
+    // Create preview
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setFotosPreview({...fotosPreview, [areaId]: e.target.result});
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDownloadRelatorio = async () => {
+    setDownloadingReport(true);
+    try {
+      const response = await axios.get(`${API}/tickets/${ticketId}/relatorio`, {
+        withCredentials: true,
+        responseType: 'blob'
+      });
+      
+      const blob = new Blob([response.data], { type: 'text/html' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `relatorio_ticket_${ticketId.substring(4)}.html`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Relatório baixado com sucesso!');
+    } catch (error) {
+      console.error('Error downloading report:', error);
+      toast.error('Erro ao baixar relatório');
+    } finally {
+      setDownloadingReport(false);
+    }
+  };
+
+  const viewFotoCliente = (areaId) => {
+    window.open(`${API}/areas/${areaId}/foto-cliente`, '_blank');
+  };
+
   if (loading || !ticket) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -174,10 +222,16 @@ const TicketDetalhesPage = ({ user }) => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">Ticket #{ticket.ticket_id.substring(4)}</h1>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/tickets')}>
-              <Home className="w-4 h-4 mr-2" />
-              Voltar
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm" onClick={() => navigate('/tickets')}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Voltar
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/home')}>
+                <Home className="w-4 h-4 mr-2" />
+                Home
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -186,7 +240,19 @@ const TicketDetalhesPage = ({ user }) => {
         <div className="grid gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Status: {(ticket.etapa || ticket.status || 'pendente')?.replace(/_/g, ' ').toUpperCase()}</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                <span>Status: {(ticket.etapa || ticket.status || 'pendente')?.replace(/_/g, ' ').toUpperCase()}</span>
+                {ticket.etapa === 'finalizado' && (
+                  <Button 
+                    onClick={handleDownloadRelatorio} 
+                    disabled={downloadingReport}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    {downloadingReport ? 'Baixando...' : 'Baixar Relatório'}
+                  </Button>
+                )}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {isGestor && ticket.etapa === 'mapeamento_gestor' && (
@@ -201,13 +267,31 @@ const TicketDetalhesPage = ({ user }) => {
                   {ticket.areas.map((area) => (
                     <div key={area.area_id} className="p-4 border rounded-md">
                       <p className="font-medium mb-2">{area.nome}</p>
+                      <p className="text-sm text-muted-foreground mb-2">Tipo: {area.tipo_area} | Criticidade: {area.criticidade}</p>
+                      
+                      {fotosPreview[area.area_id] && (
+                        <div className="mb-3">
+                          <img 
+                            src={fotosPreview[area.area_id]} 
+                            alt="Preview" 
+                            className="max-h-32 rounded-md border"
+                          />
+                        </div>
+                      )}
+                      
                       <input
                         type="file"
                         accept="image/*"
                         capture="environment"
-                        onChange={(e) => setFotosPorArea({...fotosPorArea, [area.area_id]: e.target.files[0]})}
+                        onChange={(e) => handleFileChange(area.area_id, e.target.files[0])}
                         className="w-full"
                       />
+                      
+                      {area.foto_cliente_id && (
+                        <Badge className="mt-2 bg-green-100 text-green-700">
+                          <CheckCircle className="w-3 h-3 mr-1" /> Foto já enviada
+                        </Badge>
+                      )}
                     </div>
                   ))}
                   <Button onClick={handleEnviarTodasFotos} className="w-full">
@@ -218,41 +302,99 @@ const TicketDetalhesPage = ({ user }) => {
 
               {isGestor && ticket.etapa === 'analise_gestor' && ticket.areas?.length > 0 && (
                 <div className="space-y-4">
-                  <p className="text-sm font-medium">Analise as fotos enviadas:</p>
+                  <p className="text-sm font-medium">Analise as fotos enviadas pelo cliente:</p>
                   {ticket.areas.map((area) => (
                     <div key={area.area_id} className="p-4 border rounded-md space-y-3">
-                      <p className="font-medium">{area.nome}</p>
-                      <Select
-                        value={analisesPorArea[area.area_id]?.situacao || ''}
-                        onValueChange={(v) => setAnalisesPorArea({
-                          ...analisesPorArea,
-                          [area.area_id]: {...analisesPorArea[area.area_id], situacao: v}
-                        })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Situação encontrada" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="conforme">✓ Conforme</SelectItem>
-                          <SelectItem value="nao_conforme">✗ Não Conforme</SelectItem>
-                          <SelectItem value="nao_aplicavel">— Não Aplicável</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Textarea
-                        placeholder="Observações..."
-                        value={analisesPorArea[area.area_id]?.observacao || ''}
-                        onChange={(e) => setAnalisesPorArea({
-                          ...analisesPorArea,
-                          [area.area_id]: {...analisesPorArea[area.area_id], observacao: e.target.value}
-                        })}
-                        rows={2}
-                      />
-                      <Button onClick={() => handleAnalisarArea(area.area_id)} size="sm" className="w-full">
-                        Salvar Análise
-                      </Button>
+                      <div className="flex items-center justify-between">
+                        <p className="font-medium">{area.nome}</p>
+                        <Badge variant="outline">{area.tipo_area}</Badge>
+                      </div>
+                      
+                      {/* Mostrar foto do cliente */}
+                      {area.foto_cliente_id ? (
+                        <div className="space-y-2">
+                          <p className="text-sm text-muted-foreground">Foto enviada pelo cliente:</p>
+                          <div className="relative">
+                            <img 
+                              src={`${API}/areas/${area.area_id}/foto-cliente`}
+                              alt={`Foto de ${area.nome}`}
+                              className="max-h-64 w-full object-contain rounded-md border bg-gray-50 cursor-pointer"
+                              onClick={() => viewFotoCliente(area.area_id)}
+                            />
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="absolute top-2 right-2"
+                              onClick={() => viewFotoCliente(area.area_id)}
+                            >
+                              <Eye className="w-4 h-4 mr-1" />
+                              Ampliar
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md text-center">
+                          <Image className="w-8 h-8 mx-auto mb-2 text-yellow-600" />
+                          <p className="text-sm text-yellow-700">Cliente ainda não enviou foto desta área</p>
+                        </div>
+                      )}
+                      
+                      {/* Análise já feita */}
+                      {area.situacao_gestor ? (
+                        <div className={`p-3 rounded-md ${
+                          area.situacao_gestor === 'conforme' ? 'bg-green-50 border-green-200' :
+                          area.situacao_gestor === 'nao_conforme' ? 'bg-red-50 border-red-200' :
+                          'bg-gray-50 border-gray-200'
+                        } border`}>
+                          <div className="flex items-center gap-2 mb-1">
+                            {area.situacao_gestor === 'conforme' && <CheckCircle className="w-4 h-4 text-green-600" />}
+                            {area.situacao_gestor === 'nao_conforme' && <XCircle className="w-4 h-4 text-red-600" />}
+                            {area.situacao_gestor === 'nao_aplicavel' && <Minus className="w-4 h-4 text-gray-600" />}
+                            <span className="font-medium">
+                              {area.situacao_gestor === 'conforme' ? 'Conforme' :
+                               area.situacao_gestor === 'nao_conforme' ? 'Não Conforme' : 'Não Aplicável'}
+                            </span>
+                          </div>
+                          {area.observacao_gestor && (
+                            <p className="text-sm mt-1">{area.observacao_gestor}</p>
+                          )}
+                        </div>
+                      ) : (
+                        <>
+                          <Select
+                            value={analisesPorArea[area.area_id]?.situacao || ''}
+                            onValueChange={(v) => setAnalisesPorArea({
+                              ...analisesPorArea,
+                              [area.area_id]: {...analisesPorArea[area.area_id], situacao: v}
+                            })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Situação encontrada" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="conforme">✓ Conforme</SelectItem>
+                              <SelectItem value="nao_conforme">✗ Não Conforme</SelectItem>
+                              <SelectItem value="nao_aplicavel">— Não Aplicável</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Textarea
+                            placeholder="Observações..."
+                            value={analisesPorArea[area.area_id]?.observacao || ''}
+                            onChange={(e) => setAnalisesPorArea({
+                              ...analisesPorArea,
+                              [area.area_id]: {...analisesPorArea[area.area_id], observacao: e.target.value}
+                            })}
+                            rows={2}
+                          />
+                          <Button onClick={() => handleAnalisarArea(area.area_id)} size="sm" className="w-full">
+                            Salvar Análise
+                          </Button>
+                        </>
+                      )}
                     </div>
                   ))}
-                  <Button onClick={handleFinalizarAnalise} className="w-full">
+                  <Button onClick={handleFinalizarAnalise} className="w-full bg-green-600 hover:bg-green-700">
+                    <CheckCircle className="w-4 h-4 mr-2" />
                     Finalizar e Enviar Relatório
                   </Button>
                 </div>
@@ -260,9 +402,33 @@ const TicketDetalhesPage = ({ user }) => {
 
               {ticket.etapa === 'finalizado' && (
                 <div className="text-center py-8">
-                  <CheckCircle className="w-16 h-16 text-success mx-auto mb-4" />
+                  <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
                   <p className="text-lg font-semibold">Ticket Finalizado</p>
-                  <p className="text-sm text-muted-foreground">Relatório completo disponível</p>
+                  <p className="text-sm text-muted-foreground mb-4">Relatório completo disponível</p>
+                  
+                  {/* Resumo das análises */}
+                  {ticket.areas?.length > 0 && (
+                    <div className="mt-6 space-y-2 text-left">
+                      <p className="font-medium text-center mb-4">Resumo das Análises:</p>
+                      {ticket.areas.map((area) => (
+                        <div key={area.area_id} className={`p-3 rounded-md flex items-center justify-between ${
+                          area.situacao_gestor === 'conforme' ? 'bg-green-50' :
+                          area.situacao_gestor === 'nao_conforme' ? 'bg-red-50' :
+                          'bg-gray-50'
+                        }`}>
+                          <span>{area.nome}</span>
+                          <Badge className={
+                            area.situacao_gestor === 'conforme' ? 'bg-green-100 text-green-700' :
+                            area.situacao_gestor === 'nao_conforme' ? 'bg-red-100 text-red-700' :
+                            'bg-gray-100 text-gray-700'
+                          }>
+                            {area.situacao_gestor === 'conforme' ? '✓ Conforme' :
+                             area.situacao_gestor === 'nao_conforme' ? '✗ Não Conforme' : '— N/A'}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>

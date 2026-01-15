@@ -562,7 +562,7 @@ async def upload_planta(
     await db.tickets.insert_one(ticket_dict)
     
     # Enviar email para gestor
-    enviar_email_notificacao(
+    await enviar_email_notificacao(
         GESTORES_EMAILS[0],
         "Novo Ticket - EcoGuard",
         f"Nova planta enviada por {user.email}. Ticket #{ticket_id[-8:]}. Acesse o sistema para mapear as áreas críticas."

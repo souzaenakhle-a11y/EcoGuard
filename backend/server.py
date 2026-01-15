@@ -1681,6 +1681,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+@app.on_event("startup")
+async def startup_event():
+    """Inicia o scheduler de alertas ao iniciar a aplicação"""
+    logger.info("🚀 EcoGuard iniciado!")
+    # Iniciar scheduler de alertas em background
+    asyncio.create_task(scheduler_alertas())
+    logger.info("📅 Scheduler de alertas automáticos iniciado (verifica a cada hora)")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()

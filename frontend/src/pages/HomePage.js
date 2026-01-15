@@ -18,7 +18,8 @@ const HomePage = ({ user }) => {
     totalEmpresas: 0,
     totalInspecoes: 0,
     totalLicencas: 0,
-    licencasAVencer: 0
+    licencasAVencer: 0,
+    condicionantesAVencer: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -28,18 +29,33 @@ const HomePage = ({ user }) => {
 
   const fetchStats = async () => {
     try {
-      const [empresasRes, licencasRes] = await Promise.all([
+      const [empresasRes, licencasRes, ticketsRes, condicionantesRes] = await Promise.all([
         axios.get(`${API}/empresas`, { withCredentials: true }),
-        axios.get(`${API}/licencas`, { withCredentials: true })
+        axios.get(`${API}/licencas`, { withCredentials: true }),
+        axios.get(`${API}/tickets`, { withCredentials: true }),
+        axios.get(`${API}/condicionantes`, { withCredentials: true })
       ]);
 
       const licencasAVencer = licencasRes.data.filter(l => l.status === 'a_vencer' || l.status === 'vencida').length;
+      
+      // Contar condicionantes a vencer (próximos 30 dias)
+      const hoje = new Date();
+      const condicionantesAVencer = condicionantesRes.data.filter(c => {
+        if (!c.data_acompanhamento) return false;
+        const dataAcomp = new Date(c.data_acompanhamento);
+        const diffDias = Math.ceil((dataAcomp - hoje) / (1000 * 60 * 60 * 24));
+        return diffDias >= 0 && diffDias <= 30;
+      }).length;
+
+      // Contar tickets/inspeções finalizados
+      const totalInspecoes = ticketsRes.data.filter(t => t.etapa === 'finalizado').length;
 
       setStats({
         totalEmpresas: empresasRes.data.length,
-        totalInspecoes: 0,
+        totalInspecoes,
         totalLicencas: licencasRes.data.length,
-        licencasAVencer
+        licencasAVencer,
+        condicionantesAVencer
       });
       setLoading(false);
     } catch (error) {

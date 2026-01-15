@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Factory, LogOut, CheckCircle, AlertTriangle, Calendar, Building, Shield, Trash2, Edit, Eye } from 'lucide-react';
+import { Factory, LogOut, CheckCircle, AlertTriangle, Calendar, Building, Shield, Trash2, Edit, Eye, Plus, Copy, Key } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -14,29 +15,32 @@ const API = `${BACKEND_URL}/api`;
 
 const AdminHomePage = ({ user }) => {
   const navigate = useNavigate();
-  const [data, setData] = useState({ empresas: [], licencas: [], condicionantes: [], tickets: [] });
+  const [data, setData] = useState({ empresas: [], licencas: [], condicionantes: [], tickets: [], convites: [] });
   const [stats, setStats] = useState({ totalEmpresas: 0, totalLicencas: 0, totalCondicionantes: 0, totalTickets: 0, licencasVencidas: 0, condicionantesAtrasadas: 0 });
   const [loading, setLoading] = useState(true);
+  const [novoConviteEmail, setNovoConviteEmail] = useState('');
 
   const fetchAllData = async () => {
     try {
-      const [empresasRes, licencasRes, condicionantesRes, ticketsRes] = await Promise.all([
+      const [empresasRes, licencasRes, condicionantesRes, ticketsRes, convitesRes] = await Promise.all([
         axios.get(`${API}/empresas`, { withCredentials: true }),
         axios.get(`${API}/licencas`, { withCredentials: true }),
         axios.get(`${API}/condicionantes`, { withCredentials: true }),
-        axios.get(`${API}/tickets`, { withCredentials: true })
+        axios.get(`${API}/tickets`, { withCredentials: true }),
+        axios.get(`${API}/convites`, { withCredentials: true })
       ]);
 
       const empresas = empresasRes.data || [];
       const licencas = licencasRes.data || [];
       const condicionantes = condicionantesRes.data || [];
       const tickets = ticketsRes.data || [];
+      const convites = convitesRes.data || [];
 
       const hoje = new Date();
       const licencasVencidas = licencas.filter(l => l.data_vencimento && new Date(l.data_vencimento) < hoje).length;
       const condicionantesAtrasadas = condicionantes.filter(c => c.data_acompanhamento && new Date(c.data_acompanhamento) < hoje && c.status !== 'concluida').length;
 
-      setData({ empresas, licencas, condicionantes, tickets });
+      setData({ empresas, licencas, condicionantes, tickets, convites });
       setStats({ totalEmpresas: empresas.length, totalLicencas: licencas.length, totalCondicionantes: condicionantes.length, totalTickets: tickets.length, licencasVencidas, condicionantesAtrasadas });
       setLoading(false);
     } catch (error) {
@@ -46,6 +50,33 @@ const AdminHomePage = ({ user }) => {
   };
 
   useEffect(() => { fetchAllData(); }, []);
+
+  const handleCriarConvite = async () => {
+    try {
+      const res = await axios.post(`${API}/convites`, { email_destino: novoConviteEmail || null, dias_validade: 30 }, { withCredentials: true });
+      toast.success(`Código criado: ${res.data.codigo}`);
+      setNovoConviteEmail('');
+      fetchAllData();
+    } catch (error) {
+      toast.error('Erro ao criar convite');
+    }
+  };
+
+  const handleCopiarCodigo = (codigo) => {
+    navigator.clipboard.writeText(codigo);
+    toast.success('Código copiado!');
+  };
+
+  const handleDeleteConvite = async (codigo) => {
+    if (!window.confirm('Excluir este código?')) return;
+    try {
+      await axios.delete(`${API}/convites/${codigo}`, { withCredentials: true });
+      toast.success('Código excluído!');
+      fetchAllData();
+    } catch (error) {
+      toast.error('Erro ao excluir');
+    }
+  };
 
   const handleDeleteLicenca = async (licencaId) => {
     if (!window.confirm('Excluir esta licença?')) return;
@@ -133,13 +164,53 @@ const AdminHomePage = ({ user }) => {
           <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">Cond. Atrasadas</p><p className="text-2xl font-bold text-orange-600">{stats.condicionantesAtrasadas}</p></div><AlertTriangle className="w-8 h-8 text-orange-600" /></div></CardContent></Card>
         </div>
 
-        <Tabs defaultValue="empresas" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+        <Tabs defaultValue="convites" className="w-full">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="convites">Convites ({data.convites.length})</TabsTrigger>
             <TabsTrigger value="empresas">Empresas ({data.empresas.length})</TabsTrigger>
             <TabsTrigger value="licencas">Licenças ({data.licencas.length})</TabsTrigger>
             <TabsTrigger value="condicionantes">Condicionantes ({data.condicionantes.length})</TabsTrigger>
             <TabsTrigger value="tickets">Tickets ({data.tickets.length})</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="convites" className="mt-6">
+            <Card className="mb-4">
+              <CardContent className="pt-6">
+                <div className="flex gap-4 items-end">
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground mb-2">Email específico (opcional)</p>
+                    <Input placeholder="email@exemplo.com (deixe vazio para código livre)" value={novoConviteEmail} onChange={(e) => setNovoConviteEmail(e.target.value)} />
+                  </div>
+                  <Button onClick={handleCriarConvite}><Plus className="w-4 h-4 mr-2" />Gerar Código</Button>
+                </div>
+              </CardContent>
+            </Card>
+            <div className="grid gap-4">
+              {data.convites.length === 0 ? (
+                <Card><CardContent className="pt-6 text-center py-8"><Key className="w-12 h-12 mx-auto mb-4 text-muted-foreground" /><p className="text-muted-foreground">Nenhum código de convite criado</p></CardContent></Card>
+              ) : data.convites.map(c => (
+                <Card key={c.codigo}>
+                  <CardContent className="pt-6 flex justify-between items-center">
+                    <div>
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="font-mono text-lg font-bold tracking-widest">{c.codigo}</span>
+                        <Badge className={c.usado ? 'bg-gray-100 text-gray-700' : 'bg-green-100 text-green-700'}>{c.usado ? 'Usado' : 'Disponível'}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {c.email_destino ? `Para: ${c.email_destino}` : 'Código livre'} 
+                        {c.usado_por && ` • Usado por: ${c.usado_por}`}
+                        {c.expires_at && ` • Expira: ${format(new Date(c.expires_at), 'dd/MM/yyyy')}`}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => handleCopiarCodigo(c.codigo)}><Copy className="w-4 h-4" /></Button>
+                      <Button variant="outline" size="sm" className="text-red-600" onClick={() => handleDeleteConvite(c.codigo)}><Trash2 className="w-4 h-4" /></Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
 
           <TabsContent value="empresas" className="mt-6">
             <div className="grid gap-4">

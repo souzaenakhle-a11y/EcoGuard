@@ -47,7 +47,31 @@ const CondicionantesPage = ({ user }) => {
         axios.get(`${API}/condicionantes`, { withCredentials: true }),
         axios.get(`${API}/licencas`, { withCredentials: true })
       ]);
-      setCondicionantes(condRes.data || []);
+      
+      // Check for overdue condicionantes and update status
+      const condicionantes = condRes.data || [];
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const updatedCondicionantes = condicionantes.map(cond => {
+        if (cond.data_acompanhamento && cond.status !== 'concluida') {
+          const dataAcompanhamento = new Date(cond.data_acompanhamento);
+          dataAcompanhamento.setHours(0, 0, 0, 0);
+          
+          if (dataAcompanhamento < today && cond.status !== 'atrasada') {
+            // Update status to atrasada in the backend
+            axios.put(`${API}/condicionantes/${cond.condicionante_id}`, 
+              { ...cond, status: 'atrasada' }, 
+              { withCredentials: true }
+            ).catch(err => console.error('Error updating status:', err));
+            
+            return { ...cond, status: 'atrasada' };
+          }
+        }
+        return cond;
+      });
+      
+      setCondicionantes(updatedCondicionantes);
       setLicencas(licRes.data || []);
       setLoading(false);
     } catch (error) {

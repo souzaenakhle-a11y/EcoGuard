@@ -137,17 +137,34 @@ const UploadPlantaPage = ({ user }) => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-3xl">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/home')}
-          className="mb-6"
-          data-testid="home-button"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Home
-        </Button>
+      <div className="border-b border-border bg-white">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold">Nova Planta</h1>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(-1)}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Voltar
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/home')}
+                data-testid="home-button"
+              >
+                <Home className="w-4 h-4 mr-2" />
+                Home
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
 
+      <div className="container mx-auto px-4 py-8 max-w-3xl">
         <Card>
           <CardHeader>
             <div className="flex items-center gap-3 mb-2">

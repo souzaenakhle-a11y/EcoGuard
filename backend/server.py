@@ -1641,8 +1641,10 @@ async def get_historico_alertas(request: Request, dias: int = 30):
     user = await get_current_user(request)
     
     data_inicio = datetime.now(timezone.utc) - timedelta(days=dias)
+    logger.info(f"Buscando alertas desde {data_inicio}")
     
     alertas = await db.alertas_enviados.find({}, {"_id": 0}).sort("enviado_em", -1).to_list(500)
+    logger.info(f"Encontrados {len(alertas)} alertas no banco")
     
     # Filtrar e converter datas para serialização
     alertas_filtrados = []
@@ -1657,10 +1659,12 @@ async def get_historico_alertas(request: Request, dias: int = 30):
                 if enviado_em.tzinfo is None:
                     enviado_em = enviado_em.replace(tzinfo=timezone.utc)
             
+            logger.info(f"Alerta {alerta.get('alerta_key')}: enviado_em={enviado_em}, passa filtro={enviado_em >= data_inicio}")
             if enviado_em >= data_inicio:
                 alerta["enviado_em"] = enviado_em.isoformat()
                 alertas_filtrados.append(alerta)
     
+    logger.info(f"Retornando {len(alertas_filtrados)} alertas filtrados")
     return alertas_filtrados
 
 # Endpoint para configurações de alerta por licença

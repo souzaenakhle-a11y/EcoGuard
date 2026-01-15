@@ -39,18 +39,34 @@ function AuthCallback() {
       if (!hash || !hash.includes('session_id=')) return;
 
       const sessionId = hash.split('session_id=')[1].split('&')[0];
+      
+      // Verificar se tem código de convite salvo
+      const codigoConvite = localStorage.getItem('codigo_convite');
 
       try {
         const response = await axios.post(
           `${API}/auth/session`,
-          { session_id: sessionId },
+          { session_id: sessionId, codigo_convite: codigoConvite },
           { withCredentials: true }
         );
-
+        
+        // Limpar código usado
+        localStorage.removeItem('codigo_convite');
         navigate('/home', { state: { user: response.data }, replace: true });
       } catch (error) {
         console.error('Auth error:', error);
-        navigate('/login', { replace: true });
+        
+        if (error.response?.data?.detail === 'CONVITE_NECESSARIO') {
+          // Salvar session_id e pedir código
+          localStorage.setItem('pending_session_id', sessionId);
+          navigate('/login', { state: { needsInvite: true }, replace: true });
+        } else if (error.response?.data?.detail === 'CONVITE_INVALIDO') {
+          navigate('/login', { state: { error: 'Código de convite inválido' }, replace: true });
+        } else if (error.response?.data?.detail === 'CONVITE_EXPIRADO') {
+          navigate('/login', { state: { error: 'Código de convite expirado' }, replace: true });
+        } else {
+          navigate('/login', { replace: true });
+        }
       }
     };
 

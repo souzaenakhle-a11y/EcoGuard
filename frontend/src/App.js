@@ -15,6 +15,7 @@ import DashboardPage from './pages/DashboardPage';
 import LicencasPage from './pages/LicencasPage';
 import LicencasCadastroPage from './pages/LicencasCadastroPage';
 import LicencasIndicadoresPage from './pages/LicencasIndicadoresPage';
+import CondicionantesPage from './pages/CondicionantesPage';
 import ClientesPage from './pages/ClientesPage';
 import TicketsPage from './pages/TicketsPage';
 import TicketDetalhesPage from './pages/TicketDetalhesPage';

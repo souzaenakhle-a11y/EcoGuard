@@ -37,10 +37,6 @@ const CondicionantesPage = ({ user }) => {
     observacoes: ''
   });
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const fetchData = async () => {
     try {
       const [condRes, licRes] = await Promise.all([
@@ -79,6 +75,10 @@ const CondicionantesPage = ({ user }) => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

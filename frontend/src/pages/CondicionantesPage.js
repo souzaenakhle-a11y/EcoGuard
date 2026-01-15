@@ -299,10 +299,6 @@ const CondicionantesPage = ({ user }) => {
                   </div>
                 </div>
                 <div>
-                  <Label>Nova Data Acompanhamento (prorrogação)</Label>
-                  <Input type="date" value={formData.nova_data_acompanhamento} onChange={(e) => setFormData({...formData, nova_data_acompanhamento: e.target.value})} />
-                </div>
-                <div>
                   <Label>Observações</Label>
                   <Textarea value={formData.observacoes} onChange={(e) => setFormData({...formData, observacoes: e.target.value})} />
                 </div>

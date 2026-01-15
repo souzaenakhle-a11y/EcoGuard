@@ -3,8 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Home, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
+import { Home, AlertTriangle, CheckCircle, Clock, Bell, RefreshCw } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -12,10 +15,14 @@ const API = `${BACKEND_URL}/api`;
 const LicencasIndicadoresPage = ({ user }) => {
   const navigate = useNavigate();
   const [dashboard, setDashboard] = useState(null);
+  const [alertasHistorico, setAlertasHistorico] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [verificando, setVerificando] = useState(false);
+  const isGestor = user?.email === 'souzaenakhle@gmail.com';
 
   useEffect(() => {
     fetchDashboard();
+    fetchAlertasHistorico();
   }, []);
 
   const fetchDashboard = async () => {
@@ -26,6 +33,29 @@ const LicencasIndicadoresPage = ({ user }) => {
     } catch (error) {
       console.error('Error fetching dashboard:', error);
       setLoading(false);
+    }
+  };
+
+  const fetchAlertasHistorico = async () => {
+    try {
+      const response = await axios.get(`${API}/alertas/historico?dias=30`, { withCredentials: true });
+      setAlertasHistorico(response.data || []);
+    } catch (error) {
+      console.error('Error fetching alertas:', error);
+    }
+  };
+
+  const handleVerificarAlertas = async () => {
+    setVerificando(true);
+    try {
+      const response = await axios.post(`${API}/alertas/verificar`, {}, { withCredentials: true });
+      toast.success(response.data.message);
+      fetchAlertasHistorico();
+    } catch (error) {
+      console.error('Error verificando alertas:', error);
+      toast.error('Erro ao verificar alertas');
+    } finally {
+      setVerificando(false);
     }
   };
 

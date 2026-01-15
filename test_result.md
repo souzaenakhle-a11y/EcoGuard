@@ -102,6 +102,124 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
+user_problem_statement: |
+  Correções no sistema EcoGuard de Auto-Fiscalização Ambiental:
+  1. Status do ticket na lista mostra "Aberto" mesmo quando fechado
+  2. Adicionar ícone para excluir tickets na lista
+  3. Fotos enviadas pelo cliente não são visualizadas no painel do gestor
+  4. Relatório PDF não disponível quando ticket finalizado
+  5. Ícones de voltar/home devem estar do lado direito
+
+backend:
+  - task: "GET /api/areas/{area_id}/foto-cliente - Visualizar foto do cliente"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Endpoint implementado e testado - retorna foto ou 404"
+
+  - task: "DELETE /api/tickets/{ticket_id} - Excluir ticket"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Endpoint implementado - cliente marca como excluído, gestor exclui definitivamente"
+
+  - task: "GET /api/tickets/{ticket_id}/relatorio - Gerar relatório HTML"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Endpoint gera HTML completo com resumo das análises"
+
+  - task: "GET /api/tickets - Retornar campo etapa correto"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Tickets retornam etapa correta e filtram excluídos pelo cliente"
+
+frontend:
+  - task: "TicketsPage - Corrigir badge de status usando etapa"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/TicketsPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+
+  - task: "TicketsPage - Adicionar botão excluir ticket"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/TicketsPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+
+  - task: "TicketDetalhesPage - Mostrar fotos do cliente para gestor"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/TicketDetalhesPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+
+  - task: "TicketDetalhesPage - Botão download relatório"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/TicketDetalhesPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+
+  - task: "Todas as páginas - Botões voltar/home no lado direito"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/*.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "TicketsPage status badge"
+    - "TicketsPage delete button"
+    - "TicketDetalhesPage foto visualization"
+    - "TicketDetalhesPage report download"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Implementadas todas as correções solicitadas pelo usuário. Backend testado e funcionando. Frontend precisa de teste visual."
+
 user_problem_statement: "Testar as correções implementadas no sistema EcoGuard - Auto-Fiscalização Ambiental. Teste os endpoints: GET /api/areas/{area_id}/foto-cliente (deve retornar 404 se não existir foto), DELETE /api/tickets/{ticket_id} (deve funcionar para excluir tickets), GET /api/tickets/{ticket_id}/relatorio (deve gerar HTML do relatório), GET /api/tickets (verificar que retorna tickets com campo etapa correto). Endpoints requerem autenticação via cookie de sessão."
 
 backend:

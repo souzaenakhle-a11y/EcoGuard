@@ -240,6 +240,15 @@ class CondicionanteUpdate(BaseModel):
     observacoes: Optional[str] = None
     nova_data_acompanhamento: Optional[str] = None
 
+class CodigoConvite(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    codigo: str
+    email_destino: Optional[str] = None  # Se específico para um email
+    usado: bool = False
+    usado_por: Optional[str] = None
+    created_at: datetime
+    expires_at: Optional[datetime] = None
+
 class LicencaDocumento(BaseModel):
     model_config = ConfigDict(extra="ignore")
     licenca_id: str

@@ -1363,21 +1363,21 @@ async def update_ticket_status(ticket_id: str, status: str, etapa: str, request:
     
     if etapa == "upload_fotos_cliente":
         # Gestor mapeou áreas, notificar cliente
-        enviar_email_notificacao(
+        await enviar_email_notificacao(
             cliente_email,
             f"Atualização Ticket #{ticket_id[-8:]} - EcoGuard",
             f"Seu ticket foi atualizado. As áreas críticas foram mapeadas. Acesse o sistema para enviar as fotos solicitadas."
         )
     elif etapa == "analise_gestor":
         # Cliente enviou fotos, notificar gestor
-        enviar_email_notificacao(
+        await enviar_email_notificacao(
             GESTORES_EMAILS[0],
             f"Atualização Ticket #{ticket_id[-8:]} - EcoGuard",
             f"O cliente {cliente_email} enviou as fotos. Acesse o sistema para análise."
         )
     elif etapa == "finalizado":
         # Gestor finalizou, notificar cliente
-        enviar_email_notificacao(
+        await enviar_email_notificacao(
             cliente_email,
             f"Ticket #{ticket_id[-8:]} Concluído - EcoGuard",
             f"Seu ticket foi concluído. O relatório está disponível no sistema."

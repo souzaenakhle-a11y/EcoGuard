@@ -585,6 +585,18 @@ async def get_planta_file(planta_id: str, request: Request):
         media_type=planta["tipo_arquivo"]
     )
 
+@api_router.put("/plantas/{planta_id}")
+async def update_planta(planta_id: str, request: Request):
+    user = await get_current_user(request)
+    body = await request.json()
+    
+    await db.plantas_estabelecimento.update_one(
+        {"planta_id": planta_id},
+        {"$set": body}
+    )
+    
+    return {"message": "Planta updated"}
+
 # Área Crítica Routes
 @api_router.post("/areas/{planta_id}", response_model=AreaCritica)
 async def create_area(planta_id: str, area_data: AreaCriticaCreate, request: Request):

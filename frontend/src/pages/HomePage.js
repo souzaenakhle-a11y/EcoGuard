@@ -24,11 +24,6 @@ const HomePage = ({ user }) => {
   });
   const [loading, setLoading] = useState(true);
 
-  // Se o usuário é o gestor, renderizar a página de administração
-  if (user?.email === 'souzaenakhle@gmail.com') {
-    return <AdminHomePage user={user} />;
-  }
-
   useEffect(() => {
     fetchStats();
   }, []);

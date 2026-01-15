@@ -87,8 +87,7 @@ const CondicionantesPage = ({ user }) => {
       descricao: cond.descricao,
       status: cond.status || 'em_andamento',
       percentual_conclusao: cond.percentual_conclusao || 0,
-      observacoes: cond.observacoes || '',
-      nova_data_acompanhamento: cond.nova_data_acompanhamento?.split('T')[0] || ''
+      observacoes: cond.observacoes || ''
     });
     setShowDialog(true);
   };

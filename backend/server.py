@@ -1597,8 +1597,8 @@ async def get_relatorio_ticket(ticket_id: str, request: Request):
                 </div>
             </div>
             <div class="info-grid">
-                <div class="info-item"><strong>Data de Abertura:</strong> {ticket.get('created_at', 'N/A')[:10] if ticket.get('created_at') else 'N/A'}</div>
-                <div class="info-item"><strong>Data de Conclusão:</strong> {ticket.get('closed_at', 'N/A')[:10] if ticket.get('closed_at') else 'N/A'}</div>
+                <div class="info-item"><strong>Data de Abertura:</strong> {ticket.get('created_at').strftime('%d/%m/%Y') if ticket.get('created_at') else 'N/A'}</div>
+                <div class="info-item"><strong>Data de Conclusão:</strong> {ticket.get('closed_at').strftime('%d/%m/%Y') if ticket.get('closed_at') else 'N/A'}</div>
             </div>
         </div>
         

@@ -131,6 +131,7 @@ function AppRouter() {
       <Route path="/licencas" element={<ProtectedRoute><LicencasPage /></ProtectedRoute>} />
       <Route path="/licencas/cadastro" element={<ProtectedRoute><LicencasCadastroPage /></ProtectedRoute>} />
       <Route path="/licencas/indicadores" element={<ProtectedRoute><LicencasIndicadoresPage /></ProtectedRoute>} />
+      <Route path="/condicionantes" element={<ProtectedRoute><CondicionantesPage /></ProtectedRoute>} />
       <Route path="/clientes" element={<ProtectedRoute><ClientesPage /></ProtectedRoute>} />
       <Route path="/tickets" element={<ProtectedRoute><TicketsPage /></ProtectedRoute>} />
       <Route path="/tickets/:ticketId" element={<ProtectedRoute><TicketDetalhesPage /></ProtectedRoute>} />

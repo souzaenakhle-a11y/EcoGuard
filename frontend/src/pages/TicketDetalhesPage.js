@@ -181,20 +181,15 @@ const TicketDetalhesPage = ({ user }) => {
     setDownloadingReport(true);
     try {
       const response = await axios.get(`${API}/tickets/${ticketId}/relatorio`, {
-        withCredentials: true
+        withCredentials: true,
+        responseType: 'text'
       });
       
       // Criar blob do HTML recebido
       const blob = new Blob([response.data], { type: 'text/html;charset=utf-8' });
       const url = window.URL.createObjectURL(blob);
       
-      // Abrir em nova aba
-      const newWindow = window.open(url, '_blank');
-      if (newWindow) {
-        newWindow.focus();
-      }
-      
-      // Também permitir download
+      // Download do arquivo
       const link = document.createElement('a');
       link.href = url;
       link.download = `relatorio_ticket_${ticketId.substring(4)}.html`;
@@ -202,7 +197,7 @@ const TicketDetalhesPage = ({ user }) => {
       link.click();
       document.body.removeChild(link);
       
-      setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+      setTimeout(() => window.URL.revokeObjectURL(url), 100);
       
       toast.success('Relatório baixado com sucesso!');
     } catch (error) {

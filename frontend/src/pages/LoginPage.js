@@ -37,39 +37,9 @@ const LoginPage = () => {
       return;
     }
 
-    setLoading(true);
-    const pendingSessionId = localStorage.getItem('pending_session_id');
-
-    if (!pendingSessionId) {
-      // Salvar código e fazer login novamente
-      localStorage.setItem('codigo_convite', codigoConvite.toUpperCase());
-      handleLogin();
-      return;
-    }
-
-    try {
-      const response = await axios.post(
-        `${API}/auth/session`,
-        { session_id: pendingSessionId, codigo_convite: codigoConvite.toUpperCase() },
-        { withCredentials: true }
-      );
-
-      localStorage.removeItem('pending_session_id');
-      localStorage.removeItem('codigo_convite');
-      navigate('/home', { state: { user: response.data }, replace: true });
-    } catch (error) {
-      if (error.response?.data?.detail === 'CONVITE_INVALIDO') {
-        toast.error('Código de convite inválido');
-      } else if (error.response?.data?.detail === 'CONVITE_EXPIRADO') {
-        toast.error('Código de convite expirado');
-      } else {
-        toast.error('Erro ao validar convite. Tente fazer login novamente.');
-        localStorage.removeItem('pending_session_id');
-        setShowInviteInput(false);
-      }
-    } finally {
-      setLoading(false);
-    }
+    // Salvar código e fazer login com Google
+    localStorage.setItem('codigo_convite', codigoConvite.toUpperCase());
+    handleLogin();
   };
 
   return (

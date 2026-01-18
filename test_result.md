@@ -295,6 +295,30 @@ backend:
           agent: "testing"
           comment: "Minor: Backend service is healthy with good response time (0.07s average). CORS headers are missing but this doesn't affect core functionality. Service is running properly on supervisor (PID 1197, uptime stable). No critical errors in logs."
 
+  - task: "Sistema de alertas por email - Resend API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Configurado Resend API (re_G7KVLwfX_EKBsv4QbvHfvPX9CrHAxq4iq) com email admin (aplicativo@snengenharia.org). Alertas implementados em add_ticket_mensagem (linha ~1407) e update_ticket_status (linha ~1473). Cliente recebe email quando gestor atualiza ticket. Gestor recebe quando cliente envia mensagem/fotos. Admin recebe todas as notificações de mudanças."
+
+  - task: "Sistema de licenças e condicionantes para admin"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Sistema já existente e funcional. Admin/gestor pode criar licenças via POST /api/licencas (linha 1037) e condicionantes via POST /api/licencas/{licenca_id}/condicionantes (linha 1158). Inclui endpoints GET, PUT, DELETE para ambos recursos."
+
 frontend:
   # No frontend testing performed as per instructions
 

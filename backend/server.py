@@ -31,6 +31,10 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 fs = AsyncIOMotorGridFSBucket(db)
 
+# Configurar Resend
+resend.api_key = os.environ.get('RESEND_API_KEY')
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'aplicativo@snengenharia.org')
+
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 

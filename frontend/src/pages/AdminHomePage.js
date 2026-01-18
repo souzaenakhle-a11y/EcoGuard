@@ -141,6 +141,10 @@ const AdminHomePage = ({ user }) => {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <Button variant="outline" size="sm" onClick={() => navigate('/admin/users')}>
+                <Users className="w-4 h-4 mr-2" />
+                Usuários
+              </Button>
               <Button variant="outline" size="sm" onClick={() => navigate('/tickets')}>
                 <CheckCircle className="w-4 h-4 mr-2" />
                 Auto-Fiscalização

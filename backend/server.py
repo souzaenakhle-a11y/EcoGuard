@@ -409,8 +409,12 @@ async def create_session(request: Request, response: Response):
                 raise HTTPException(status_code=403, detail="CONVITE_INVALIDO")
             
             # Verificar se expirou
-            if convite.get("expires_at") and convite["expires_at"] < datetime.now(timezone.utc):
-                raise HTTPException(status_code=403, detail="CONVITE_EXPIRADO")
+            if convite.get("expires_at"):
+                expires = convite["expires_at"]
+                if expires.tzinfo is None:
+                    expires = expires.replace(tzinfo=timezone.utc)
+                if expires < datetime.now(timezone.utc):
+                    raise HTTPException(status_code=403, detail="CONVITE_EXPIRADO")
             
             # Verificar se é específico para um email
             if convite.get("email_destino") and convite["email_destino"] != email:

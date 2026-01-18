@@ -1957,7 +1957,21 @@ async def verificar_licencas_vencendo():
             if alerta_existente:
                 continue
             
-            if dias_restantes <= 7 and dias_restantes >= 0:
+            # Determinar se precisa enviar alerta
+            deve_alertar = False
+            tipo_alerta = ""
+            
+            if dias_restantes < 0:
+                deve_alertar = True
+                tipo_alerta = "VENCIDA"
+            elif dias_restantes <= 7:
+                deve_alertar = True
+                tipo_alerta = "CRÍTICO"
+            elif dias_restantes <= 15:
+                deve_alertar = True
+                tipo_alerta = "ATENÇÃO"
+            
+            if deve_alertar:
                 # Buscar licença associada
                 licenca = await db.licencas_documentos.find_one(
                     {"licenca_id": cond["licenca_id"]},
@@ -1965,16 +1979,30 @@ async def verificar_licencas_vencendo():
                 )
                 
                 if licenca and cond.get("responsavel_email"):
-                    mensagem = f"""
-                    A condicionante <strong>{cond['nome']}</strong> da licença <strong>{licenca['nome_licenca']}</strong> 
-                    tem prazo de acompanhamento em <strong>{dias_restantes} dias</strong>.<br><br>
-                    <strong>Descrição:</strong> {cond['descricao']}<br>
-                    <strong>Data:</strong> {data_acompanhamento.strftime('%d/%m/%Y')}<br>
-                    <strong>Responsável:</strong> {cond['responsavel_nome']}<br><br>
-                    Verifique o cumprimento desta condicionante.
-                    """
-                    
-                    assunto = f"[CONDICIONANTE] {cond['nome']} - Prazo em {dias_restantes} dias"
+                    # Montar mensagem baseada no tipo de alerta
+                    if dias_restantes < 0:
+                        mensagem = f"""
+                        <strong style="color: #dc2626;">⚠️ CONDICIONANTE VENCIDA!</strong><br><br>
+                        A condicionante <strong>{cond['nome']}</strong> da licença <strong>{licenca['nome_licenca']}</strong> 
+                        está <strong>VENCIDA há {abs(dias_restantes)} dias</strong>.<br><br>
+                        <strong>Descrição:</strong> {cond['descricao']}<br>
+                        <strong>Data prevista:</strong> {data_acompanhamento.strftime('%d/%m/%Y')}<br>
+                        <strong>Responsável:</strong> {cond['responsavel_nome']}<br>
+                        <strong>Status:</strong> {cond.get('status', 'em_andamento')}<br><br>
+                        <strong style="color: #dc2626;">AÇÃO URGENTE NECESSÁRIA!</strong> Verifique o cumprimento desta condicionante imediatamente.
+                        """
+                        assunto = f"[{tipo_alerta}] Condicionante {cond['nome']} - VENCIDA há {abs(dias_restantes)} dias"
+                    else:
+                        mensagem = f"""
+                        A condicionante <strong>{cond['nome']}</strong> da licença <strong>{licenca['nome_licenca']}</strong> 
+                        tem prazo de acompanhamento em <strong>{dias_restantes} dias</strong>.<br><br>
+                        <strong>Descrição:</strong> {cond['descricao']}<br>
+                        <strong>Data:</strong> {data_acompanhamento.strftime('%d/%m/%Y')}<br>
+                        <strong>Responsável:</strong> {cond['responsavel_nome']}<br>
+                        <strong>Status:</strong> {cond.get('status', 'em_andamento')}<br><br>
+                        Verifique o cumprimento desta condicionante.
+                        """
+                        assunto = f"[{tipo_alerta}] Condicionante {cond['nome']} - Prazo em {dias_restantes} dias"
                     
                     # Notificar responsável
                     await enviar_email_notificacao(cond["responsavel_email"], assunto, mensagem)

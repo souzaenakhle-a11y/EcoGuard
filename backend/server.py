@@ -1507,6 +1507,12 @@ async def update_ticket_status(ticket_id: str, status: str, etapa: str, request:
             f"Atualização Ticket #{ticket_id[-8:]} - EcoGuard",
             f"Seu ticket foi atualizado. As áreas críticas foram mapeadas. Acesse o sistema para enviar as fotos solicitadas."
         )
+        # Notificar admin
+        await enviar_email_notificacao(
+            ADMIN_EMAIL,
+            f"Alerta: Ticket #{ticket_id[-8:]} - Áreas mapeadas",
+            f"Cliente: {cliente_email}<br>Status: Aguardando upload de fotos pelo cliente"
+        )
     elif etapa == "analise_gestor":
         # Cliente enviou fotos, notificar gestor
         await enviar_email_notificacao(
@@ -1514,12 +1520,24 @@ async def update_ticket_status(ticket_id: str, status: str, etapa: str, request:
             f"Atualização Ticket #{ticket_id[-8:]} - EcoGuard",
             f"O cliente {cliente_email} enviou as fotos. Acesse o sistema para análise."
         )
+        # Notificar admin
+        await enviar_email_notificacao(
+            ADMIN_EMAIL,
+            f"Alerta: Ticket #{ticket_id[-8:]} - Fotos enviadas",
+            f"Cliente: {cliente_email}<br>Status: Aguardando análise do gestor"
+        )
     elif etapa == "finalizado":
         # Gestor finalizou, notificar cliente
         await enviar_email_notificacao(
             cliente_email,
             f"Ticket #{ticket_id[-8:]} Concluído - EcoGuard",
             f"Seu ticket foi concluído. O relatório está disponível no sistema."
+        )
+        # Notificar admin
+        await enviar_email_notificacao(
+            ADMIN_EMAIL,
+            f"Alerta: Ticket #{ticket_id[-8:]} - Concluído",
+            f"Cliente: {cliente_email}<br>Status: Ticket finalizado com relatório disponível"
         )
     
     return {"message": "Status atualizado"}

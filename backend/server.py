@@ -1422,6 +1422,33 @@ async def add_ticket_mensagem(ticket_id: str, mensagem: str, tipo: str, request:
         "created_at": datetime.now(timezone.utc)
     })
     
+    # Buscar dados do ticket para notificações
+    ticket = await db.tickets.find_one({"ticket_id": ticket_id}, {"_id": 0})
+    if ticket:
+        # Se mensagem do gestor, notificar cliente
+        if is_gestor(user):
+            cliente_email = ticket.get("user_email")
+            if cliente_email:
+                await enviar_email_notificacao(
+                    cliente_email,
+                    f"Nova mensagem no Ticket #{ticket_id[-8:]} - EcoGuard",
+                    f"O gestor enviou uma nova mensagem no seu ticket:<br><br><em>\"{mensagem}\"</em><br><br>Acesse o sistema para mais detalhes."
+                )
+        # Se mensagem do cliente, notificar gestor e admin
+        else:
+            # Notificar gestor
+            await enviar_email_notificacao(
+                GESTORES_EMAILS[0],
+                f"Nova mensagem no Ticket #{ticket_id[-8:]} - EcoGuard",
+                f"O cliente {user.email} enviou uma mensagem no ticket:<br><br><em>\"{mensagem}\"</em><br><br>Acesse o sistema para responder."
+            )
+            # Notificar admin
+            await enviar_email_notificacao(
+                ADMIN_EMAIL,
+                f"Alerta: Nova mensagem - Ticket #{ticket_id[-8:]}",
+                f"Cliente: {user.email}<br>Mensagem: <em>\"{mensagem}\"</em><br><br>Ticket ID: {ticket_id}"
+            )
+    
     return {"message": "Mensagem adicionada"}
 
 @api_router.put("/tickets/{ticket_id}/status")

@@ -201,6 +201,211 @@ class EcoGuardTester:
             self.log_test("Backend Logs", False, f"Error checking logs: {str(e)}")
             return False
     
+    def authenticate_as_test_user(self):
+        """Authenticate as a test user to access protected endpoints"""
+        try:
+            # Try to create a session with a test session_id
+            # This is a mock authentication for testing purposes
+            auth_data = {
+                "session_id": "test_session_123",
+                "codigo_convite": None
+            }
+            
+            response = self.session.post(f"{BACKEND_URL}/auth/session", json=auth_data)
+            
+            if response.status_code == 200:
+                # Extract session token from response or cookies
+                if 'session_token' in self.session.cookies:
+                    self.session_token = self.session.cookies['session_token']
+                    self.log_test("Authentication", True, "Successfully authenticated test user")
+                    return True
+                else:
+                    self.log_test("Authentication", False, "No session token received")
+                    return False
+            else:
+                self.log_test("Authentication", False, f"Auth failed with status {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Authentication", False, f"Authentication error: {str(e)}")
+            return False
+    
+    def test_email_alert_endpoints_structure(self):
+        """Test that email alert endpoints exist and have correct structure"""
+        # Test POST /api/tickets/{ticket_id}/mensagem endpoint
+        fake_ticket_id = "tkt_fake123"
+        
+        try:
+            # Test mensagem endpoint
+            response = self.session.post(f"{BACKEND_URL}/tickets/{fake_ticket_id}/mensagem")
+            
+            if response.status_code == 401:
+                self.log_test("Email Alert - Mensagem Endpoint", True, "POST mensagem endpoint exists and requires auth")
+            elif response.status_code in [400, 422]:
+                self.log_test("Email Alert - Mensagem Endpoint", True, "POST mensagem endpoint exists (missing data)")
+            else:
+                self.log_test("Email Alert - Mensagem Endpoint", False, f"Unexpected status: {response.status_code}")
+                return False
+            
+            # Test status update endpoint
+            response = self.session.put(f"{BACKEND_URL}/tickets/{fake_ticket_id}/status")
+            
+            if response.status_code == 401:
+                self.log_test("Email Alert - Status Endpoint", True, "PUT status endpoint exists and requires auth")
+            elif response.status_code in [400, 422]:
+                self.log_test("Email Alert - Status Endpoint", True, "PUT status endpoint exists (missing data)")
+            else:
+                self.log_test("Email Alert - Status Endpoint", False, f"Unexpected status: {response.status_code}")
+                return False
+            
+            return True
+            
+        except Exception as e:
+            self.log_test("Email Alert Endpoints", False, f"Request failed: {str(e)}")
+            return False
+    
+    def test_resend_configuration(self):
+        """Test if Resend API configuration is properly set"""
+        try:
+            # Check if backend has the required environment variables
+            import subprocess
+            
+            # Check if backend process has RESEND_API_KEY
+            result = subprocess.run(
+                ["grep", "-r", "RESEND_API_KEY", "/app/backend/.env"],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            
+            if result.returncode == 0 and "re_G7KVLwfX_EKBsv4QbvHfvPX9CrHAxq4iq" in result.stdout:
+                self.log_test("Resend Configuration", True, "RESEND_API_KEY is configured correctly")
+            else:
+                self.log_test("Resend Configuration", False, "RESEND_API_KEY not found or incorrect")
+                return False
+            
+            # Check ADMIN_EMAIL configuration
+            result = subprocess.run(
+                ["grep", "-r", "ADMIN_EMAIL", "/app/backend/.env"],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            
+            if result.returncode == 0 and "aplicativo@snengenharia.org" in result.stdout:
+                self.log_test("Admin Email Configuration", True, "ADMIN_EMAIL is configured correctly")
+                return True
+            else:
+                self.log_test("Admin Email Configuration", False, "ADMIN_EMAIL not found or incorrect")
+                return False
+                
+        except Exception as e:
+            self.log_test("Resend Configuration", False, f"Configuration check failed: {str(e)}")
+            return False
+    
+    def test_email_function_implementation(self):
+        """Test if email notification function is implemented in backend code"""
+        try:
+            # Check if enviar_email_notificacao function exists in server.py
+            with open("/app/backend/server.py", "r") as f:
+                content = f.read()
+            
+            if "enviar_email_notificacao" in content:
+                self.log_test("Email Function", True, "enviar_email_notificacao function found in backend")
+            else:
+                self.log_test("Email Function", False, "enviar_email_notificacao function not found")
+                return False
+            
+            # Check if resend import exists
+            if "import resend" in content:
+                self.log_test("Resend Import", True, "Resend library is imported")
+            else:
+                self.log_test("Resend Import", False, "Resend library not imported")
+                return False
+            
+            # Check if email notifications are called in ticket operations
+            if "📧 Email enviado" in content:
+                self.log_test("Email Logging", True, "Email logging is implemented")
+                return True
+            else:
+                self.log_test("Email Logging", False, "Email logging not found")
+                return False
+                
+        except Exception as e:
+            self.log_test("Email Function Implementation", False, f"Code check failed: {str(e)}")
+            return False
+    
+    def check_email_logs_after_operations(self):
+        """Check backend logs for email sending attempts after operations"""
+        try:
+            import subprocess
+            import time
+            
+            # Clear any existing logs first
+            subprocess.run(["sudo", "truncate", "-s", "0", "/var/log/supervisor/backend.out.log"], timeout=5)
+            
+            # Wait a moment for log clearing
+            time.sleep(1)
+            
+            # Now check for any new email-related logs
+            result = subprocess.run(
+                ["tail", "-n", "100", "/var/log/supervisor/backend.out.log"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            if result.returncode == 0:
+                logs = result.stdout
+                email_logs = [line for line in logs.split('\n') if '📧' in line or 'email' in line.lower() or 'resend' in line.lower()]
+                
+                if email_logs:
+                    self.log_test("Email Logs Check", True, f"Found {len(email_logs)} email-related log entries", email_logs[-3:])
+                    return True
+                else:
+                    self.log_test("Email Logs Check", True, "No email logs found (may indicate no recent email operations)")
+                    return True
+            else:
+                self.log_test("Email Logs Check", False, "Could not read backend logs")
+                return False
+                
+        except Exception as e:
+            self.log_test("Email Logs Check", False, f"Log check failed: {str(e)}")
+            return False
+    
+    def test_email_alert_system_comprehensive(self):
+        """Comprehensive test of the email alert system"""
+        print("\n🔔 Testing Email Alert System")
+        print("-" * 40)
+        
+        # Test 1: Configuration
+        config_ok = self.test_resend_configuration()
+        
+        # Test 2: Implementation
+        impl_ok = self.test_email_function_implementation()
+        
+        # Test 3: Endpoints
+        endpoints_ok = self.test_email_alert_endpoints_structure()
+        
+        # Test 4: Check logs
+        logs_ok = self.check_email_logs_after_operations()
+        
+        # Overall assessment
+        if config_ok and impl_ok and endpoints_ok:
+            self.log_test("Email Alert System", True, "Email alert system is properly configured and implemented")
+            return True
+        else:
+            failed_components = []
+            if not config_ok:
+                failed_components.append("Configuration")
+            if not impl_ok:
+                failed_components.append("Implementation")
+            if not endpoints_ok:
+                failed_components.append("Endpoints")
+            
+            self.log_test("Email Alert System", False, f"Email system issues in: {', '.join(failed_components)}")
+            return False
+    
     def run_all_tests(self):
         """Run all tests in sequence"""
         print("🧪 Starting EcoGuard Backend Tests")

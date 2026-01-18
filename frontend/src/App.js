@@ -20,6 +20,7 @@ import CondicionantesPage from './pages/CondicionantesPage';
 import ClientesPage from './pages/ClientesPage';
 import TicketsPage from './pages/TicketsPage';
 import TicketDetalhesPage from './pages/TicketDetalhesPage';
+import AdminUsersPage from './pages/AdminUsersPage';
 import { Toaster } from 'sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;

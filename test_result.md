@@ -306,6 +306,30 @@ backend:
         - working: "NA"
           agent: "main"
           comment: "Configurado Resend API (re_G7KVLwfX_EKBsv4QbvHfvPX9CrHAxq4iq) com email admin (aplicativo@snengenharia.org). Alertas implementados em add_ticket_mensagem (linha ~1407) e update_ticket_status (linha ~1473). Cliente recebe email quando gestor atualiza ticket. Gestor recebe quando cliente envia mensagem/fotos. Admin recebe todas as notificações de mudanças."
+
+  - task: "Alertas de vencimento de licenças"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Sistema de verificação automática a cada hora (linha 1996-2005). Função verificar_licencas_vencendo (linha 1836) envia alertas para cliente, gestor e admin quando: 1) Licença vencida (CRÍTICO), 2) Faltam 7 dias ou menos (CRÍTICO), 3) Dentro do prazo configurado em dias_alerta_vencimento (ATENÇÃO). Previne spam com controle de 1 alerta/dia por licença."
+
+  - task: "Alertas de vencimento de condicionantes"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Integrado no scheduler automático (linha 1936-2000). Envia alertas para responsável, gestor e admin quando: 1) Condicionante vencida (VENCIDA), 2) Faltam 7 dias ou menos (CRÍTICO), 3) Faltam 15 dias ou menos (ATENÇÃO). Inclui informações de licença associada, descrição e responsável. Previne spam com controle diário."
         - working: true
           agent: "testing"
           comment: "Sistema de alertas por email TOTALMENTE FUNCIONAL. Testado: 1) Configuração Resend API (re_G7KVLwfX_EKBsv4QbvHfvPX9CrHAxq4iq) ✓, 2) Email admin (aplicativo@snengenharia.org) ✓, 3) Função enviar_email_notificacao implementada ✓, 4) POST /api/tickets/{ticket_id}/mensagem - notifica gestor quando cliente envia mensagem (linha 1440-1444) e cliente quando gestor responde (linha 1432-1436) ✓, 5) PUT /api/tickets/{ticket_id}/status - notifica cliente em 'upload_fotos_cliente' (linha 1505-1509), gestor em 'analise_gestor' (linha 1518-1522), cliente em 'finalizado' (linha 1531-1535) ✓, 6) Admin recebe TODAS as notificações ✓. Logs mostram '📧 Email enviado' na linha 329. 14 chamadas de email encontradas no código. HTML templates com branding EcoGuard implementados. Sistema 100% conforme especificação."

@@ -1914,11 +1914,14 @@ async def verificar_licencas_vencendo():
                         
                         assunto = f"[{tipo_alerta}] Licença {licenca['nome_licenca']} - {dias_restantes} dias para vencer" if dias_restantes >= 0 else f"[VENCIDA] Licença {licenca['nome_licenca']} - AÇÃO URGENTE"
                         
-                        # Enviar email
+                        # Enviar email para cliente
                         await enviar_email_notificacao(user["email"], assunto, mensagem)
                         
-                        # Também notificar gestor
+                        # Notificar gestor
                         await enviar_email_notificacao(GESTORES_EMAILS[0], assunto, mensagem)
+                        
+                        # Notificar admin
+                        await enviar_email_notificacao(ADMIN_EMAIL, assunto, mensagem)
                         
                         # Registrar que enviamos o alerta
                         await db.alertas_enviados.insert_one({

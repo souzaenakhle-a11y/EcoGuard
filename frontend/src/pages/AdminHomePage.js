@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Factory, LogOut, CheckCircle, AlertTriangle, Calendar, Building, Shield, Trash2, Edit, Eye, Plus, Copy, Key } from 'lucide-react';
+import { Factory, LogOut, CheckCircle, AlertTriangle, Calendar, Building, Shield, Trash2, Edit, Eye, Plus, Copy, Key, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 

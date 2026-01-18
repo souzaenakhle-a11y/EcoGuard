@@ -11,7 +11,7 @@ import os
 from datetime import datetime
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://support-fixer.preview.emergentagent.com/api"
+BACKEND_URL = "https://ticket-alerts-1.preview.emergentagent.com/api"
 
 class EcoGuardExtendedTester:
     def __init__(self):

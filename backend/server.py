@@ -1976,8 +1976,12 @@ async def verificar_licencas_vencendo():
                     
                     assunto = f"[CONDICIONANTE] {cond['nome']} - Prazo em {dias_restantes} dias"
                     
+                    # Notificar responsável
                     await enviar_email_notificacao(cond["responsavel_email"], assunto, mensagem)
+                    # Notificar gestor
                     await enviar_email_notificacao(GESTORES_EMAILS[0], assunto, mensagem)
+                    # Notificar admin
+                    await enviar_email_notificacao(ADMIN_EMAIL, assunto, mensagem)
                     
                     await db.alertas_enviados.insert_one({
                         "alerta_key": alerta_key,

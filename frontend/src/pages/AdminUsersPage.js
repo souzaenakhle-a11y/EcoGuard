@@ -69,14 +69,14 @@ export default function AdminUsersPage() {
           </h1>
           <div className="flex gap-2">
             <button
-              onClick={() => navigate('/admin')}
+              onClick={() => navigate(-1)}
               className="flex items-center gap-2 px-4 py-2 bg-white text-green-600 rounded-lg hover:bg-green-50 transition-colors shadow"
             >
               <ArrowLeft className="w-4 h-4" />
               Voltar
             </button>
             <button
-              onClick={() => navigate('/admin')}
+              onClick={() => navigate('/')}
               className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow"
             >
               <Home className="w-4 h-4" />

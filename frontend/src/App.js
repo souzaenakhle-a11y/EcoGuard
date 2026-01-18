@@ -159,6 +159,7 @@ function AppRouter() {
       <Route path="/clientes" element={<ProtectedRoute><ClientesPage /></ProtectedRoute>} />
       <Route path="/tickets" element={<ProtectedRoute><TicketsPage /></ProtectedRoute>} />
       <Route path="/tickets/:ticketId" element={<ProtectedRoute><TicketDetalhesPage /></ProtectedRoute>} />
+      <Route path="/admin/users" element={<ProtectedRoute><AdminUsersPage /></ProtectedRoute>} />
     </Routes>
   );
 }

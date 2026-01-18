@@ -293,7 +293,7 @@ class LicencaDocumentoUpdate(BaseModel):
 
 # Auth Helper
 GESTORES_EMAILS = ["souzaenakhle@gmail.com"]
-SENDER_EMAIL = "EcoGuard <onboarding@resend.dev>"
+SENDER_EMAIL = f"EcoGuard <{ADMIN_EMAIL}>"
 
 # Configure Resend
 resend.api_key = os.environ.get('RESEND_API_KEY')

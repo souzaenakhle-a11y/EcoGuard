@@ -2014,12 +2014,13 @@ async def verificar_licencas_vencendo():
                     await db.alertas_enviados.insert_one({
                         "alerta_key": alerta_key,
                         "condicionante_id": cond["condicionante_id"],
-                        "tipo_alerta": "CONDICIONANTE",
+                        "tipo_alerta": tipo_alerta,
                         "dias_restantes": dias_restantes,
                         "enviado_em": datetime.now(timezone.utc)
                     })
                     
                     alertas_enviados += 1
+                    logger.info(f"📧 Alerta de condicionante enviado: {cond['nome']} ({tipo_alerta})")
         
         logger.info(f"✅ Verificação concluída. {alertas_enviados} alertas enviados.")
         return alertas_enviados

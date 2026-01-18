@@ -424,6 +424,7 @@ class EcoGuardTester:
             self.test_tickets_endpoint_structure,
             self.test_ticket_delete_endpoint,
             self.test_ticket_relatorio_endpoint,
+            self.test_email_alert_system_comprehensive,
             self.test_backend_logs
         ]
         

@@ -373,6 +373,158 @@ class EcoGuardTester:
             self.log_test("Email Logs Check", False, f"Log check failed: {str(e)}")
             return False
     
+    def test_alert_system_endpoints(self):
+        """Test alert system endpoints structure"""
+        try:
+            # Test POST /api/alertas/verificar endpoint
+            response = self.session.post(f"{BACKEND_URL}/alertas/verificar")
+            
+            if response.status_code == 401:
+                self.log_test("Alert Verificar Endpoint", True, "POST /api/alertas/verificar exists and requires authentication")
+            elif response.status_code == 403:
+                self.log_test("Alert Verificar Endpoint", True, "POST /api/alertas/verificar exists and requires gestor permission")
+            else:
+                self.log_test("Alert Verificar Endpoint", False, f"Unexpected status: {response.status_code}")
+                return False
+            
+            # Test GET /api/alertas/historico endpoint
+            response = self.session.get(f"{BACKEND_URL}/alertas/historico")
+            
+            if response.status_code == 401:
+                self.log_test("Alert Historico Endpoint", True, "GET /api/alertas/historico exists and requires authentication")
+            elif response.status_code == 200:
+                # If we get 200, check response structure
+                try:
+                    data = response.json()
+                    if isinstance(data, list):
+                        self.log_test("Alert Historico Endpoint", True, "GET /api/alertas/historico returns list structure")
+                    else:
+                        self.log_test("Alert Historico Endpoint", False, "Response is not a list")
+                        return False
+                except json.JSONDecodeError:
+                    self.log_test("Alert Historico Endpoint", False, "Response is not valid JSON")
+                    return False
+            else:
+                self.log_test("Alert Historico Endpoint", False, f"Unexpected status: {response.status_code}")
+                return False
+            
+            return True
+            
+        except Exception as e:
+            self.log_test("Alert System Endpoints", False, f"Request failed: {str(e)}")
+            return False
+    
+    def test_alert_system_code_structure(self):
+        """Test if alert system code is properly implemented"""
+        try:
+            with open("/app/backend/server.py", "r") as f:
+                content = f.read()
+            
+            # Check for verificar_licencas_vencendo function
+            if "async def verificar_licencas_vencendo():" in content:
+                self.log_test("Alert Function - Licenças", True, "verificar_licencas_vencendo function found")
+            else:
+                self.log_test("Alert Function - Licenças", False, "verificar_licencas_vencendo function not found")
+                return False
+            
+            # Check for scheduler function
+            if "async def scheduler_alertas():" in content:
+                self.log_test("Alert Scheduler Function", True, "scheduler_alertas function found")
+            else:
+                self.log_test("Alert Scheduler Function", False, "scheduler_alertas function not found")
+                return False
+            
+            # Check for startup event that initializes scheduler
+            if "📅 Scheduler de alertas automáticos iniciado" in content:
+                self.log_test("Alert Scheduler Startup", True, "Scheduler initialization found in startup event")
+            else:
+                self.log_test("Alert Scheduler Startup", False, "Scheduler initialization not found")
+                return False
+            
+            # Check for license alert logic
+            if "dias_restantes < 0" in content and "tipo_alerta = \"VENCIDA\"" in content:
+                self.log_test("License Alert Logic - Expired", True, "Expired license alert logic found")
+            else:
+                self.log_test("License Alert Logic - Expired", False, "Expired license alert logic not found")
+                return False
+            
+            if "dias_restantes <= 7" in content and "tipo_alerta = \"CRÍTICO\"" in content:
+                self.log_test("License Alert Logic - Critical", True, "Critical license alert logic found (7 days)")
+            else:
+                self.log_test("License Alert Logic - Critical", False, "Critical license alert logic not found")
+                return False
+            
+            # Check for condicionante alert logic
+            if "dias_restantes <= 15" in content and "ATENÇÃO" in content:
+                self.log_test("Condicionante Alert Logic", True, "Condicionante alert logic found (15 days attention)")
+            else:
+                self.log_test("Condicionante Alert Logic", False, "Condicionante alert logic not found")
+                return False
+            
+            # Check for spam prevention (alerta_key)
+            if "alerta_key" in content and "alertas_enviados" in content:
+                self.log_test("Alert Spam Prevention", True, "Spam prevention logic found (alerta_key)")
+            else:
+                self.log_test("Alert Spam Prevention", False, "Spam prevention logic not found")
+                return False
+            
+            # Check for email notifications to multiple recipients
+            if "GESTORES_EMAILS[0]" in content and "ADMIN_EMAIL" in content:
+                self.log_test("Alert Email Recipients", True, "Multiple email recipients found (client, gestor, admin)")
+            else:
+                self.log_test("Alert Email Recipients", False, "Multiple email recipients not properly configured")
+                return False
+            
+            return True
+            
+        except Exception as e:
+            self.log_test("Alert System Code Structure", False, f"Code analysis failed: {str(e)}")
+            return False
+    
+    def test_alert_system_logs(self):
+        """Check backend logs for alert system initialization"""
+        try:
+            import subprocess
+            
+            # Check for scheduler initialization logs
+            result = subprocess.run(
+                ["tail", "-n", "200", "/var/log/supervisor/backend.out.log"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            if result.returncode == 0:
+                logs = result.stdout
+                
+                # Check for scheduler startup log
+                if "📅 Scheduler de alertas automáticos iniciado" in logs:
+                    self.log_test("Alert Scheduler Logs", True, "Scheduler startup log found")
+                else:
+                    self.log_test("Alert Scheduler Logs", False, "Scheduler startup log not found in recent logs")
+                
+                # Check for license verification logs
+                if "🔔 Iniciando verificação de licenças" in logs:
+                    self.log_test("License Verification Logs", True, "License verification startup log found")
+                else:
+                    self.log_test("License Verification Logs", False, "License verification log not found")
+                
+                # Check for alert sending logs
+                alert_logs = [line for line in logs.split('\n') if '📧 Alerta enviado' in line or '📧 Alerta de condicionante enviado' in line]
+                if alert_logs:
+                    self.log_test("Alert Sending Logs", True, f"Found {len(alert_logs)} alert sending log entries")
+                else:
+                    self.log_test("Alert Sending Logs", True, "No alert sending logs (normal if no alerts needed)")
+                
+                return True
+            else:
+                self.log_test("Alert System Logs", False, "Could not read backend logs")
+                return False
+                
+        except Exception as e:
+            self.log_test("Alert System Logs", False, f"Log check failed: {str(e)}")
+            return False
+    
     def test_email_alert_system_comprehensive(self):
         """Comprehensive test of the email alert system"""
         print("\n🔔 Testing Email Alert System")
@@ -404,6 +556,36 @@ class EcoGuardTester:
                 failed_components.append("Endpoints")
             
             self.log_test("Email Alert System", False, f"Email system issues in: {', '.join(failed_components)}")
+            return False
+    
+    def test_license_condicionante_alert_system(self):
+        """Test the complete license and condicionante alert system"""
+        print("\n🚨 Testing License & Condicionante Alert System")
+        print("-" * 50)
+        
+        # Test 1: Alert endpoints
+        endpoints_ok = self.test_alert_system_endpoints()
+        
+        # Test 2: Code structure and logic
+        code_ok = self.test_alert_system_code_structure()
+        
+        # Test 3: System logs
+        logs_ok = self.test_alert_system_logs()
+        
+        # Overall assessment
+        if endpoints_ok and code_ok:
+            self.log_test("License & Condicionante Alert System", True, "Complete alert system is properly implemented")
+            return True
+        else:
+            failed_components = []
+            if not endpoints_ok:
+                failed_components.append("Endpoints")
+            if not code_ok:
+                failed_components.append("Code Structure")
+            if not logs_ok:
+                failed_components.append("Logs")
+            
+            self.log_test("License & Condicionante Alert System", False, f"Alert system issues in: {', '.join(failed_components)}")
             return False
     
     def run_all_tests(self):

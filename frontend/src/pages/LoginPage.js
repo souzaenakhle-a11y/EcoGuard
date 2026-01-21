@@ -43,22 +43,22 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex flex-col lg:flex-row">
       <div 
         className="hidden lg:block lg:w-1/2 bg-cover bg-center relative"
         style={{
           backgroundImage: `linear-gradient(rgba(26, 46, 46, 0.7), rgba(26, 46, 46, 0.7)), url('https://images.unsplash.com/photo-1659353587228-5dbbebb5d98f?crop=entropy&cs=srgb&fm=jpg&q=85')`
         }}
       >
-        <div className="absolute inset-0 flex items-center justify-center p-12">
+        <div className="absolute inset-0 flex items-center justify-center p-8 lg:p-12">
           <div className="text-white max-w-md">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">Sistema de Auto-Fiscalização Ambiental</h1>
-            <p className="text-lg text-gray-200">Evite multas e garanta conformidade com inspeções preventivas</p>
+            <h1 className="text-3xl lg:text-4xl xl:text-5xl font-bold mb-4 lg:mb-6">Sistema de Auto-Fiscalização Ambiental</h1>
+            <p className="text-base lg:text-lg text-gray-200">Evite multas e garanta conformidade com inspeções preventivas</p>
           </div>
         </div>
       </div>
 
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-8 min-h-screen lg:min-h-0">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-md mb-4">

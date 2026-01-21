@@ -143,17 +143,17 @@ const HomePage = ({ user }) => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
         {/* Hero Section */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-3">Bem-vindo ao EcoGuard</h1>
-          <p className="text-lg text-muted-foreground">
+        <div className="mb-8 sm:mb-12">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-3">Bem-vindo ao EcoGuard</h1>
+          <p className="text-base sm:text-lg text-muted-foreground">
             Gestão completa de conformidade ambiental em um só lugar
           </p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid md:grid-cols-5 gap-4 mb-12">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-8 sm:mb-12">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">

@@ -169,12 +169,12 @@ const AdminHomePage = ({ user }) => {
         </div>
 
         <Tabs defaultValue="convites" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="convites">Convites ({data.convites.length})</TabsTrigger>
-            <TabsTrigger value="empresas">Empresas ({data.empresas.length})</TabsTrigger>
-            <TabsTrigger value="licencas">Licenças ({data.licencas.length})</TabsTrigger>
-            <TabsTrigger value="condicionantes">Condicionantes ({data.condicionantes.length})</TabsTrigger>
-            <TabsTrigger value="tickets">Tickets ({data.tickets.length})</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 gap-1 h-auto">
+            <TabsTrigger value="convites" className="text-xs sm:text-sm py-2">Convites</TabsTrigger>
+            <TabsTrigger value="empresas" className="text-xs sm:text-sm py-2">Empresas</TabsTrigger>
+            <TabsTrigger value="licencas" className="text-xs sm:text-sm py-2">Licenças</TabsTrigger>
+            <TabsTrigger value="condicionantes" className="text-xs sm:text-sm py-2 hidden sm:block">Condic.</TabsTrigger>
+            <TabsTrigger value="tickets" className="text-xs sm:text-sm py-2 hidden sm:block">Tickets</TabsTrigger>
           </TabsList>
 
           <TabsContent value="convites" className="mt-6">

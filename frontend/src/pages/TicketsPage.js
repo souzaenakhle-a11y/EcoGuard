@@ -100,61 +100,61 @@ const TicketsPage = ({ user }) => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
         {tickets.length === 0 ? (
           <Card>
             <CardContent className="pt-6">
-              <div className="text-center py-12">
-                <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-lg font-semibold mb-2">Nenhum ticket encontrado</p>
-                <p className="text-muted-foreground mb-4">Faça upload de uma planta para criar um ticket</p>
-                <Button onClick={() => navigate('/upload-planta')}>
+              <div className="text-center py-8 sm:py-12">
+                <FileText className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 text-muted-foreground" />
+                <p className="text-base sm:text-lg font-semibold mb-2">Nenhum ticket encontrado</p>
+                <p className="text-sm text-muted-foreground mb-4">Faça upload de uma planta para criar um ticket</p>
+                <Button onClick={() => navigate('/upload-planta')} size="sm">
                   Nova Planta
                 </Button>
               </div>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid gap-3 sm:gap-4">
             {tickets.map((ticket) => (
               <Card 
                 key={ticket.ticket_id} 
                 className={`hover:border-primary/30 transition-colors cursor-pointer ${ticket.deleted_by_client ? 'opacity-60 border-red-200' : ''}`}
                 onClick={() => navigate(`/tickets/${ticket.ticket_id}`)}
               >
-                <CardContent className="pt-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2 flex-wrap">
-                        <h3 className="text-lg font-semibold">Ticket #{ticket.ticket_id.substring(4)}</h3>
+                <CardContent className="pt-4 sm:pt-6">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
+                        <h3 className="text-base sm:text-lg font-semibold">Ticket #{ticket.ticket_id.substring(4)}</h3>
                         {getEtapaBadge(ticket.etapa, ticket.status)}
                         {ticket.deleted_by_client && (
-                          <Badge className="bg-red-100 text-red-600 gap-1">
+                          <Badge className="bg-red-100 text-red-600 gap-1 text-xs">
                             <Trash2 className="w-3 h-3" />
-                            Excluído pelo Cliente
+                            Excluído
                           </Badge>
                         )}
                       </div>
-                      <div className="space-y-1 text-sm text-muted-foreground mb-3">
-                        <p><span className="font-medium">Empresa:</span> {ticket.empresa?.nome || 'N/A'}</p>
-                        <p><span className="font-medium">Planta:</span> {ticket.planta?.nome || 'N/A'}</p>
-                        <p><span className="font-medium">Cliente:</span> {ticket.user_email}</p>
-                        <p><span className="font-medium">Criado em:</span> {format(new Date(ticket.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+                      <div className="space-y-1 text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">
+                        <p className="truncate"><span className="font-medium">Empresa:</span> {ticket.empresa?.nome || 'N/A'}</p>
+                        <p className="truncate"><span className="font-medium">Planta:</span> {ticket.planta?.nome || 'N/A'}</p>
+                        <p className="truncate hidden sm:block"><span className="font-medium">Cliente:</span> {ticket.user_email}</p>
+                        <p><span className="font-medium">Criado:</span> {format(new Date(ticket.created_at), "dd/MM/yyyy", { locale: ptBR })}</p>
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-shrink-0">
                       <Button 
                         variant="outline" 
                         size="sm"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 px-2"
                         onClick={(e) => handleDeleteTicket(e, ticket.ticket_id)}
                         disabled={deleting === ticket.ticket_id}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
-                      <Button variant="outline" size="sm">
-                        <Eye className="w-4 h-4 mr-2" />
-                        Ver Detalhes
+                      <Button variant="outline" size="sm" className="text-xs sm:text-sm">
+                        <Eye className="w-4 h-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Ver Detalhes</span>
                       </Button>
                     </div>
                   </div>

@@ -112,21 +112,21 @@ const ClientesPage = ({ user }) => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
         {empresas.length === 0 ? (
           <Card>
             <CardContent className="pt-6">
-              <div className="text-center py-12">
-                <Building className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground mb-4">Nenhuma empresa cadastrada</p>
-                <Button onClick={() => setShowDialog(true)}>
+              <div className="text-center py-8 sm:py-12">
+                <Building className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 text-muted-foreground" />
+                <p className="text-sm sm:text-base text-muted-foreground mb-4">Nenhuma empresa cadastrada</p>
+                <Button onClick={() => setShowDialog(true)} size="sm">
                   Cadastrar Primeira Empresa
                 </Button>
               </div>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {empresas.map((empresa) => (
               <Card key={empresa.empresa_id} className="hover:border-primary/30 transition-colors">
                 <CardContent className="pt-6">

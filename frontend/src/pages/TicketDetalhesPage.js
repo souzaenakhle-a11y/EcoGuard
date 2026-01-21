@@ -240,20 +240,21 @@ const TicketDetalhesPage = ({ user }) => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="grid gap-6">
+      <div className="container mx-auto px-4 py-6 sm:py-8 max-w-4xl">
+        <div className="grid gap-4 sm:gap-6">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Status: {(ticket.etapa || ticket.status || 'pendente')?.replace(/_/g, ' ').toUpperCase()}</span>
+            <CardHeader className="pb-2 sm:pb-4">
+              <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <span className="text-sm sm:text-base">Status: {(ticket.etapa || ticket.status || 'pendente')?.replace(/_/g, ' ').toUpperCase()}</span>
                 {ticket.etapa === 'finalizado' && (
                   <Button 
                     onClick={handleDownloadRelatorio} 
                     disabled={downloadingReport}
-                    className="bg-green-600 hover:bg-green-700"
+                    className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm w-full sm:w-auto"
+                    size="sm"
                   >
-                    <Download className="w-4 h-4 mr-2" />
-                    {downloadingReport ? 'Baixando...' : 'Baixar Relatório'}
+                    <Download className="w-4 h-4 sm:mr-2" />
+                    <span>{downloadingReport ? 'Baixando...' : 'Baixar Relatório'}</span>
                   </Button>
                 )}
               </CardTitle>

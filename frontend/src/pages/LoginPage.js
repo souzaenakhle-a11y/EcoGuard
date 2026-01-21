@@ -60,14 +60,14 @@ const LoginPage = () => {
 
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-8 min-h-screen lg:min-h-0">
         <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-md mb-4">
-              <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-primary rounded-md mb-3 sm:mb-4">
+              <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h2 className="text-3xl font-bold text-foreground mb-2">EcoGuard</h2>
-            <p className="text-muted-foreground">
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">EcoGuard</h2>
+            <p className="text-sm sm:text-base text-muted-foreground">
               {showInviteInput ? 'Digite seu código de convite' : 'Faça login para continuar'}
             </p>
           </div>

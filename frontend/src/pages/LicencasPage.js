@@ -140,15 +140,15 @@ const LicencasPage = ({ user }) => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
         {empresas.length === 0 ? (
           <Card>
             <CardContent className="pt-6">
-              <div className="text-center py-12">
-                <Building className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-lg font-semibold mb-2">Nenhuma empresa cadastrada</p>
-                <p className="text-muted-foreground mb-4">Cadastre uma empresa antes de gerenciar licenças</p>
-                <Button onClick={() => navigate('/clientes')}>
+              <div className="text-center py-8 sm:py-12">
+                <Building className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 text-muted-foreground" />
+                <p className="text-base sm:text-lg font-semibold mb-2">Nenhuma empresa cadastrada</p>
+                <p className="text-sm text-muted-foreground mb-4">Cadastre uma empresa antes de gerenciar licenças</p>
+                <Button onClick={() => navigate('/clientes')} size="sm">
                   Cadastrar Empresa
                 </Button>
               </div>
@@ -156,12 +156,12 @@ const LicencasPage = ({ user }) => {
           </Card>
         ) : (
           <>
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="flex flex-col gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div className="flex-1">
             <div className="relative">
               <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por nome ou número..."
+                placeholder="Buscar..."
                 className="pl-10"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -169,8 +169,9 @@ const LicencasPage = ({ user }) => {
               />
             </div>
           </div>
+          <div className="grid grid-cols-2 sm:flex gap-2 sm:gap-3">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full md:w-[200px]" data-testid="status-filter">
+            <SelectTrigger className="w-full sm:w-[150px]" data-testid="status-filter">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -181,7 +182,7 @@ const LicencasPage = ({ user }) => {
             </SelectContent>
           </Select>
           <Select value={empresaFilter} onValueChange={setEmpresaFilter}>
-            <SelectTrigger className="w-full md:w-[200px]" data-testid="empresa-filter">
+            <SelectTrigger className="w-full sm:w-[150px]" data-testid="empresa-filter">
               <SelectValue placeholder="Empresa" />
             </SelectTrigger>
             <SelectContent>
@@ -191,14 +192,16 @@ const LicencasPage = ({ user }) => {
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={exportData} variant="outline" data-testid="export-button">
-            <Download className="w-4 h-4 mr-2" />
-            Exportar
+          <Button onClick={exportData} variant="outline" data-testid="export-button" className="hidden sm:flex">
+            <Download className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Exportar</span>
           </Button>
-          <Button onClick={() => navigate('/licencas/cadastro')} data-testid="new-license-button">
-            <Plus className="w-4 h-4 mr-2" />
-            Nova Licença
+          <Button onClick={() => navigate('/licencas/cadastro')} data-testid="new-license-button" className="col-span-2 sm:col-span-1">
+            <Plus className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Nova Licença</span>
+            <span className="sm:hidden">Nova</span>
           </Button>
+          </div>
         </div>
 
         <div className="grid gap-4">

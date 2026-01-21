@@ -143,18 +143,18 @@ const LoginPage = () => {
             </div>
           )}
 
-          <div className="mt-12 pt-8 border-t border-border">
-            <div className="grid grid-cols-3 gap-6 text-center">
+          <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-border">
+            <div className="grid grid-cols-3 gap-4 sm:gap-6 text-center">
               <div>
-                <div className="text-2xl font-bold text-primary">100%</div>
+                <div className="text-xl sm:text-2xl font-bold text-primary">100%</div>
                 <div className="text-xs text-muted-foreground mt-1">Conformidade</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-primary">24/7</div>
+                <div className="text-xl sm:text-2xl font-bold text-primary">24/7</div>
                 <div className="text-xs text-muted-foreground mt-1">Suporte</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-primary">-80%</div>
+                <div className="text-xl sm:text-2xl font-bold text-primary">-80%</div>
                 <div className="text-xs text-muted-foreground mt-1">Multas</div>
               </div>
             </div>

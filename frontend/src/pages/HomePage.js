@@ -155,61 +155,61 @@ const HomePage = ({ user }) => {
         {/* Stats Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-8 sm:mb-12">
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 sm:pt-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Empresas</p>
-                  <p className="text-3xl font-bold">{stats.totalEmpresas}</p>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Empresas</p>
+                  <p className="text-2xl sm:text-3xl font-bold">{stats.totalEmpresas}</p>
                 </div>
-                <Building className="w-8 h-8 text-muted-foreground" />
+                <Building className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 sm:pt-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Inspeções</p>
-                  <p className="text-3xl font-bold">{stats.totalInspecoes}</p>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Inspeções</p>
+                  <p className="text-2xl sm:text-3xl font-bold">{stats.totalInspecoes}</p>
                 </div>
-                <FileText className="w-8 h-8 text-muted-foreground" />
+                <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 sm:pt-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Licenças</p>
-                  <p className="text-3xl font-bold">{stats.totalLicencas}</p>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Licenças</p>
+                  <p className="text-2xl sm:text-3xl font-bold">{stats.totalLicencas}</p>
                 </div>
-                <Shield className="w-8 h-8 text-muted-foreground" />
+                <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 sm:pt-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Licenças a Vencer</p>
-                  <p className="text-3xl font-bold text-destructive">{stats.licencasAVencer}</p>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Lic. a Vencer</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-destructive">{stats.licencasAVencer}</p>
                 </div>
-                <AlertTriangle className="w-8 h-8 text-destructive" />
+                <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 text-destructive flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="pt-6">
+          <Card className="col-span-2 sm:col-span-1">
+            <CardContent className="pt-4 sm:pt-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Condicionantes a Vencer</p>
-                  <p className="text-3xl font-bold text-yellow-600">{stats.condicionantesAVencer}</p>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Cond. a Vencer</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-yellow-600">{stats.condicionantesAVencer}</p>
                 </div>
-                <Calendar className="w-8 h-8 text-yellow-600" />
+                <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-600 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>

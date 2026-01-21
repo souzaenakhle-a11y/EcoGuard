@@ -217,8 +217,8 @@ const HomePage = ({ user }) => {
 
         {/* Modules Grid */}
         <div>
-          <h2 className="text-2xl font-bold mb-6">Módulos do Sistema</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Módulos do Sistema</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {modules.map((module, index) => {
               const Icon = module.icon;
               return (

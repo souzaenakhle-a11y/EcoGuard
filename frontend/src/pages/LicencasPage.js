@@ -129,12 +129,12 @@ const LicencasPage = ({ user }) => {
   return (
     <div className="min-h-screen bg-background">
       <div className="border-b border-border bg-white">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">Gestão de Licenças</h1>
+        <div className="container mx-auto px-4 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <h1 className="text-lg sm:text-2xl font-bold">Gestão de Licenças</h1>
             <Button variant="ghost" size="sm" onClick={() => navigate('/home')} data-testid="home-button">
-              <Home className="w-4 h-4 mr-2" />
-              Home
+              <Home className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Home</span>
             </Button>
           </div>
         </div>

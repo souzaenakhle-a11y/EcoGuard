@@ -129,29 +129,29 @@ const AdminHomePage = ({ user }) => {
   return (
     <div className="min-h-screen bg-background">
       <div className="border-b border-border bg-white sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary rounded-md flex items-center justify-center">
-                <Factory className="w-6 h-6 text-white" />
+        <div className="container mx-auto px-4 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-md flex items-center justify-center">
+                <Factory className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <div>
-                <span className="text-xl font-bold">EcoGuard - Administração</span>
-                <p className="text-sm text-muted-foreground">Painel de Controle</p>
+                <span className="text-lg sm:text-xl font-bold">EcoGuard - Admin</span>
+                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Painel de Controle</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm" onClick={() => navigate('/admin/users')}>
-                <Users className="w-4 h-4 mr-2" />
-                Usuários
+            <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+              <Button variant="outline" size="sm" onClick={() => navigate('/admin/users')} className="flex-1 sm:flex-none text-xs sm:text-sm">
+                <Users className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Usuários</span>
               </Button>
-              <Button variant="outline" size="sm" onClick={() => navigate('/tickets')}>
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Auto-Fiscalização
+              <Button variant="outline" size="sm" onClick={() => navigate('/tickets')} className="flex-1 sm:flex-none text-xs sm:text-sm">
+                <CheckCircle className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Auto-Fisc.</span>
               </Button>
-              <Button variant="outline" size="sm" onClick={handleLogout}>
-                <LogOut className="w-4 h-4 mr-2" />
-                Sair
+              <Button variant="outline" size="sm" onClick={handleLogout} className="flex-1 sm:flex-none text-xs sm:text-sm">
+                <LogOut className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Sair</span>
               </Button>
             </div>
           </div>

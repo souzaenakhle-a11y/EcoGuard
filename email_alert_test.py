@@ -13,7 +13,7 @@ import subprocess
 from datetime import datetime
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://ticket-alerts-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://adaptive-ui-8.preview.emergentagent.com/api"
 
 class EmailAlertTester:
     def __init__(self):

@@ -8,7 +8,7 @@ import requests
 import json
 from datetime import datetime
 
-BACKEND_URL = "https://ticket-alerts-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://adaptive-ui-8.preview.emergentagent.com/api"
 
 def test_review_requirements():
     """Test the exact requirements from the review request"""

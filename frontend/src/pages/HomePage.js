@@ -249,9 +249,9 @@ const HomePage = ({ user }) => {
         </div>
 
         {/* Quick Actions */}
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-6">Ações Rápidas</h2>
-          <div className="grid md:grid-cols-3 gap-4">
+        <div className="mt-8 sm:mt-12">
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Ações Rápidas</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
             <Card className="hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate('/clientes')}>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-3">

@@ -121,22 +121,22 @@ const HomePage = ({ user }) => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b border-border bg-white sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary rounded-md flex items-center justify-center">
-                <Factory className="w-6 h-6 text-white" />
+        <div className="container mx-auto px-4 py-3 sm:py-4">
+          <div className="flex justify-between items-center gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-md flex items-center justify-center flex-shrink-0">
+                <Factory className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <div>
-                <span className="text-xl font-bold">EcoGuard</span>
-                <p className="text-sm text-muted-foreground">Sistema de Gestão Ambiental</p>
+              <div className="min-w-0">
+                <span className="text-lg sm:text-xl font-bold">EcoGuard</span>
+                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Sistema de Gestão Ambiental</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground">Olá, {user?.name}</span>
-              <Button variant="outline" size="sm" onClick={handleLogout} data-testid="logout-button">
-                <LogOut className="w-4 h-4 mr-2" />
-                Sair
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+              <span className="text-xs sm:text-sm text-muted-foreground hidden md:block truncate max-w-[150px]">Olá, {user?.name}</span>
+              <Button variant="outline" size="sm" onClick={handleLogout} data-testid="logout-button" className="px-2 sm:px-3">
+                <LogOut className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Sair</span>
               </Button>
             </div>
           </div>
